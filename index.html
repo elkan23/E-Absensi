@@ -5346,7 +5346,7 @@ function renderApprovalLembur(data) {
   const tbody = document.getElementById('approval-lembur-body');
   
   const config = {
-     search: (item, q) => (item.employeeName || '').toLowerCase().includes(q) || (item.activity || '').toLowerCase().includes(q),
+     search: (item, q) => ((item.name || item.employeeName) || '').toLowerCase().includes(q) || (item.activity || '').toLowerCase().includes(q),
      date: (item) => item.date
   };
   
@@ -5373,7 +5373,7 @@ function renderApprovalLembur(data) {
     const cb = ot.status === 'Pending' ? `<input type="checkbox" class="approval-cb" value="${ot.id}">` : '';
     return `<tr>
       <td>${cb}</td>
-      <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">${getInitials(ot.employeeName)}</div><span>${ot.employeeName}</span></div></td>
+      <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">${getInitials(ot.name || ot.employeeName)}</div><span>${ot.name || ot.employeeName}</span></div></td>
       <td>${formatDate(ot.date)}</td>
       <td>${ot.startTime} - ${ot.endTime}</td>
       <td><strong>${ot.totalHours}</strong></td>
@@ -5390,7 +5390,7 @@ function renderApprovalEdit(data) {
   const tbody = document.getElementById('approval-edit-body');
   
   const config = {
-     search: (item, q) => (item.employeeName || '').toLowerCase().includes(q) || (item.reason || '').toLowerCase().includes(q),
+     search: (item, q) => ((item.name || item.employeeName) || '').toLowerCase().includes(q) || (item.reason || '').toLowerCase().includes(q),
      date: (item) => item.attendanceDate
   };
   
@@ -5417,7 +5417,7 @@ function renderApprovalEdit(data) {
     const cb = er.status === 'Pending' ? `<input type="checkbox" class="approval-cb" value="${er.id}">` : '';
     return `<tr>
       <td>${cb}</td>
-      <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">${getInitials(er.employeeName)}</div><span>${er.employeeName}</span></div></td>
+      <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">${getInitials(er.name || er.employeeName)}</div><span>${er.name || er.employeeName}</span></div></td>
       <td>${formatDate(er.attendanceDate)}</td>
       <td><span style="font-size:12px;">${er.originalIn || '--:--'} / ${er.originalOut || '--:--'}</span></td>
       <td><span style="font-size:12px;font-weight:700;">${er.requestedIn || '--:--'} / ${er.requestedOut || '--:--'}</span></td>
@@ -5471,7 +5471,7 @@ function renderApprovalLeave(data) {
   const tbody = document.getElementById('approval-leave-body');
   
   const config = {
-     search: (item, q) => (item.employeeName || '').toLowerCase().includes(q) || (item.reason || '').toLowerCase().includes(q) || (item.type || '').toLowerCase().includes(q),
+     search: (item, q) => ((item.name || item.employeeName) || '').toLowerCase().includes(q) || (item.reason || '').toLowerCase().includes(q) || (item.type || '').toLowerCase().includes(q),
      date: (item) => item.startDate
   };
   
@@ -6970,11 +6970,11 @@ function submitManual() {
   gasRun('submitManualAttendance', [user.id, date, clockIn, clockOut, type, reason],
     function(res) {
       btn.innerHTML = originalHtml; btn.disabled = false;
-      if (res.success) {
-        showToast('success', 'Berhasil', res.message);
-        loadManualView();
-      } else {
+      if (res && res.success === false) {
         showToast('error', 'Gagal', res.message);
+      } else {
+        showToast('success', 'Berhasil', 'Pengajuan berhasil dikirim');
+        loadManualView();
       }
     },
     function(err) {
@@ -7685,8 +7685,8 @@ function renderApprovalManual(data) {
     const cb = m.status === 'Pending' ? `<input type="checkbox" class="approval-cb" value="${m.id}">` : '';
     return `<tr>
       <td>${cb}</td>
-      <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">${getInitials(m.employeeName)}</div><span>${m.employeeName}</span></div></td>
-      <td>${formatDate(m.attendanceDate || m.requestDate || '')}</td>
+      <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">${getInitials(m.name || m.employeeName)}</div><span>${m.name || m.employeeName}</span></div></td>
+      <td>${formatDate(m.attendanceDate || m.requestDate || m.date || '')}</td>
       <td>${m.clockIn || '--:--'} - ${m.clockOut || '--:--'}</td>
       <td><span class="badge badge-secondary">${m.type}</span></td>
       <td style="max-width:160px;font-size:12px;">${truncate(m.reason || '', 60)}</td>
