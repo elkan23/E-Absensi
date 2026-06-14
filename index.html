@@ -1441,6 +1441,13 @@
         </div>
 
         <!-- RIWAYAT LEMBUR -->
+        <div id="sv-ot-summary-card" class="card" style="display:none; margin-bottom:16px;">
+          <div class="card-title"><span>⏱️</span> Ringkasan Lembur (Sesuai Filter)</div>
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:16px; background:var(--bg); border-radius:8px;">
+            <div style="font-size:14px; color:var(--text-secondary);">Total Waktu Lembur dari data yang ditampilkan:</div>
+            <div style="font-size:24px; font-weight:800; color:var(--primary);" id="sv-ot-summary-total">0 Jam</div>
+          </div>
+        </div>
         <div class="card">
           <div class="card-title"><span>📌</span> Riwayat Pengajuan Lembur</div>
           <div class="table-wrapper">
@@ -4914,7 +4921,7 @@ function loadSupervisorDashboard() {
       const allPending = [...(data.overtime || []), ...(data.editRequests || []), ...(data.leave || []), ...(data.manual || [])];
       document.getElementById('sv-pending-count').textContent = allPending.length;
       if (allPending.length === 0) {
-        list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada yang menunggu persetujuan</div></div>`;
+        list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada yang menunggu persetujuan</div></div>';
         return;
       }
       list.innerHTML = allPending.map(item => {
@@ -5490,6 +5497,14 @@ function loadApprovalData() {
         pwdTabBtn.style.display = isUserAdmin ? 'inline-block' : 'none';
       }
 
+      const isDeptDiv = (APP_STATE.user.role === 'Dept Head' || APP_STATE.user.role === 'Div Head');
+      const d1 = document.getElementById('tab-btn-approval-edit');
+      const d2 = document.getElementById('tab-btn-approval-leave');
+      const d3 = document.getElementById('tab-btn-approval-manual');
+      if (d1) d1.style.display = isDeptDiv ? 'none' : 'inline-block';
+      if (d2) d2.style.display = isDeptDiv ? 'none' : 'inline-block';
+      if (d3) d3.style.display = isDeptDiv ? 'none' : 'inline-block';
+
       renderApprovalLembur(data.overtime || []);
       renderApprovalEdit(data.editRequests || []);
       renderApprovalLeave(data.leave || []);
@@ -5525,12 +5540,13 @@ function renderApprovalLembur(data) {
     const statusBadge = ot.status === 'Approved' ? '<span class="badge badge-success badge-dot">Disetujui</span>' :
                         ot.status === 'Rejected' ? '<span class="badge badge-danger badge-dot">Ditolak</span>' :
                         '<span class="badge badge-warning badge-dot">Pending</span>';
-    const actions = ot.status === 'Pending' ? `
+    const isPending = ot.status && ot.status.startsWith('Pending');
+    const actions = isPending ? `
       <div style="display:flex;gap:6px;">
         <button class="btn btn-success btn-sm" onclick="handleApproveOT('${ot.id}')">✅ Setuju</button>
         <button class="btn btn-danger btn-sm" onclick="handleRejectOT('${ot.id}')">❌ Tolak</button>
       </div>` : `<span style="font-size:12px;color:var(--text-secondary);">${ot.approvedBy || 'Admin'}</span>`;
-    const cb = ot.status === 'Pending' ? `<input type="checkbox" class="approval-cb" value="${ot.id}">` : '';
+    const cb = isPending ? `<input type="checkbox" class="approval-cb" value="${ot.id}">` : '';
     return `<tr>
       <td>${cb}</td>
       <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">${getInitials(ot.name || ot.employeeName)}</div><span>${ot.name || ot.employeeName}</span></div></td>
