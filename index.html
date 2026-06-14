@@ -1343,9 +1343,6 @@
         <!-- EMPLOYEE TODAY STATUS -->
         <div class="card">
           <div class="card-title"><span>📌</span> Status Karyawan Hari Ini</div>
-          <div style="margin-bottom:12px;">
-            <input type="text" class="form-control" placeholder="🔍 Cari karyawan..." oninput="filterAdminEmployeeTable(this.value)" style="max-width:320px;" />
-          </div>
           <div class="table-wrapper">
             <table class="data-table">
               <thead>
@@ -3896,20 +3893,30 @@ async function gasRun(fnName, args, onSuccess, onError) {
       const { data: lvs } = await supabaseClient.from('leave').select('*').in('user_id', ids).gte('start_date', startDate).lte('end_date', endDate);
       
       const rows = [];
+      const daysStr = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+      const { data: usersD } = await supabaseClient.from('users').select('id, name').in('id', ids);
+      const uMap = {}; 
+      if (usersD) usersD.forEach(u => { uMap[u.id] = u.name; });
+
       if (att) {
         for (const a of att) {
           const ot = ots ? ots.find(o => o.user_id === a.user_id && o.date === a.date) : null;
           rows.push({
-            userId: a.user_id, date: a.date, clockIn: a.clock_in_time, clockOut: a.clock_out_time,
+            userId: a.user_id, userName: uMap[a.user_id] || '-', day: daysStr[new Date(a.date).getDay()] || '',
+            date: a.date, clockIn: a.clock_in_time, clockOut: a.clock_out_time,
             locIn: a.clock_in_location, locOut: a.clock_out_location, workHours: a.work_hours, status: a.status,
-            otHours: ot ? ot.total_hours : 0, leaveType: ''
+            otHours: ot ? ot.total_hours : 0, otActivity: ot ? ot.activity : '', otStatus: ot ? ot.status : '', leaveType: ''
           });
         }
       }
       if (lvs) {
         for (const lv of lvs) {
           if (!rows.find(r => r.userId === lv.user_id && r.date === lv.start_date)) {
-            rows.push({ userId: lv.user_id, date: lv.start_date, clockIn: '', clockOut: '', locIn: '', locOut: '', workHours: 0, status: lv.status, otHours: 0, leaveType: lv.type });
+            rows.push({ 
+               userId: lv.user_id, userName: uMap[lv.user_id] || '-', day: daysStr[new Date(lv.start_date).getDay()] || '',
+               date: lv.start_date, clockIn: '', clockOut: '', locIn: '', locOut: '', workHours: 0, 
+               status: lv.status, otHours: 0, otActivity: '', otStatus: '', leaveType: lv.type 
+            });
           }
         }
       }
@@ -4308,7 +4315,6 @@ const NAV_MENU = {
   Admin: [
     { id: 'view-dashboard-admin', label: 'Dashboard', icon: '🏠' },
     { id: 'view-employees', label: 'Data Karyawan', icon: '👥' },
-    { id: 'view-approval', label: 'Approval', icon: '✅' },
     { id: 'view-report', label: 'Laporan Bulanan', icon: '📊' },
     { id: 'view-settings', label: 'Pengaturan', icon: '⚙️' },
     { id: 'view-activity-log', label: 'Log Aktivitas', icon: '📑' },
@@ -5272,32 +5278,52 @@ function loadAdminDashboard() {
   );
 }
 
-let _adminEmployeeData = [];
 function renderAdminEmployeeToday(data) {
-  _adminEmployeeData = data;
-  renderAdminEmployeeTodayFiltered(data);
+  APP_STATE.adminEmployeeData = data;
+  renderTableControls('admin-employee-today-body', {
+     search: (item, q) => (item.name || '').toLowerCase().includes(q) || (item.dept || '').toLowerCase().includes(q),
+     date: null
+  }, renderAdminEmployeeTodayPage);
 }
-function renderAdminEmployeeTodayFiltered(data) {
-  const tbody = document.getElementById('admin-employee-today-body');
-  if (!data || data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada data karyawan</div></div></td></tr>`;
-    return;
+
+function renderAdminEmployeeTodayPage() {
+  const tableId = 'admin-employee-today-body';
+  const state = PAGE_STATE[tableId];
+  if (!state) return;
+  
+  let data = APP_STATE.adminEmployeeData || [];
+  
+  if (state.search) {
+     const q = state.search.toLowerCase();
+     data = data.filter(item => (item.name || '').toLowerCase().includes(q) || (item.dept || '').toLowerCase().includes(q));
   }
-  tbody.innerHTML = data.map(e => `
-    <tr>
-      <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">${getInitials(e.name)}</div><span>${e.name}</span></div></td>
-      <td>${e.dept}</td>
-      <td>${e.clockIn || '-'}</td>
-      <td>${e.clockOut || '-'}</td>
-      <td>${formatWorkHours(e.workHours, e.clockIn, e.clockOut)}</td>
-      <td>${e.status === 'Hadir' ? '<span class="badge badge-success badge-dot">Hadir</span>' : '<span class="badge badge-warning badge-dot">Belum Hadir</span>'}</td>
-    </tr>
-  `).join('');
-}
-function filterAdminEmployeeTable(q) {
-  if (!q) { renderAdminEmployeeTodayFiltered(_adminEmployeeData); return; }
-  const filtered = _adminEmployeeData.filter(e => e.name.toLowerCase().includes(q.toLowerCase()) || e.dept.toLowerCase().includes(q.toLowerCase()));
-  renderAdminEmployeeTodayFiltered(filtered);
+  
+  const totalItems = data.length;
+  const size = state.size === 'all' ? totalItems : parseInt(state.size);
+  const totalPages = Math.ceil(totalItems / size) || 1;
+  state.page = Math.min(Math.max(1, state.page), totalPages);
+  
+  const startIdx = (state.page - 1) * size;
+  const pagedData = state.size === 'all' ? data : data.slice(startIdx, startIdx + size);
+  
+  const tbody = document.getElementById(tableId);
+  if (!tbody) return;
+  
+  if (pagedData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada data karyawan</div></div></td></tr>`;
+  } else {
+    tbody.innerHTML = pagedData.map(e => `
+      <tr>
+        <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">${getInitials(e.name)}</div><span>${e.name || '-'}</span></div></td>
+        <td>${e.dept || '-'}</td>
+        <td>${e.clockIn || '-'}</td>
+        <td>${e.clockOut || '-'}</td>
+        <td>${formatWorkHours(e.workHours, e.clockIn, e.clockOut)}</td>
+        <td>${e.status === 'Hadir' ? '<span class="badge badge-success badge-dot">Hadir</span>' : '<span class="badge badge-warning badge-dot">Belum Hadir</span>'}</td>
+      </tr>
+    `).join('');
+  }
+  renderPaginationControls(tableId, state.page, totalPages, renderAdminEmployeeTodayPage);
 }
 
 function renderAttendanceChart(data, canvasId = 'attendance-chart') {
@@ -6169,7 +6195,7 @@ function renderEmployeesTable(data) {
     if (isMentor) return false;
     
     const matchSearch = !APP_STATE.filterEmployeeSearch ||
-      e.name.toLowerCase().includes(APP_STATE.filterEmployeeSearch) ||
+      (e.name || '').toLowerCase().includes(APP_STATE.filterEmployeeSearch) ||
       (e.email || '').toLowerCase().includes(APP_STATE.filterEmployeeSearch) ||
       (e.position || '').toLowerCase().includes(APP_STATE.filterEmployeeSearch);
     const matchStatus = APP_STATE.filterEmployeeStatus === 'all' || e.status === APP_STATE.filterEmployeeStatus;
