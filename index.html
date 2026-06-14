@@ -3587,8 +3587,8 @@ async function gasRun(fnName, args, onSuccess, onError) {
       const [empList] = args;
       if (!empList || !empList.length) throw new Error("List kosong");
       
-      const insertData = empList.map(emp => {
-        const newId = genId('USR');
+      const insertData = empList.map((emp, i) => {
+        const newId = genId('USR') + '-' + i;
         const dbStatus = emp.status === 'Aktif' ? 'Active' : (emp.status === 'Nonaktif' ? 'Inactive' : (emp.status || 'Active'));
         let menus = '';
         if (emp.accessibleMenus) menus = Array.isArray(emp.accessibleMenus) ? emp.accessibleMenus.join(',') : emp.accessibleMenus;
