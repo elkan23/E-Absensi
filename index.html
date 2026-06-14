@@ -143,9 +143,9 @@
       margin-bottom: 12px;
     }
     .sidebar-avatar {
-      width: 36px; height: 36px; border-radius: 50%;
+      width: 32px; height: 32px; border-radius: 50%;
       background: rgba(255,255,255,0.2);
-      display: flex; align-items: center; justify-content: center;
+      display: none; align-items: center; justify-content: center;
       font-weight: 700; font-size: 14px; color: #fff;
       flex-shrink: 0; overflow: hidden;
     }
@@ -2705,7 +2705,7 @@ function applyPublicSettings() {
     const loginLogo = document.querySelector('.login-logo');
     if (loginLogo) loginLogo.innerHTML = `<img src="${s.SYSTEM_LOGO}" alt="Logo" style="max-width:100%; max-height:100%; border-radius:10px;">`;
     const sidebarLogo = document.querySelector('.sidebar-logo');
-    if (sidebarLogo) sidebarLogo.innerHTML = `<img src="${s.SYSTEM_LOGO}" alt="Logo" style="max-width:100%; max-height:100%; border-radius:8px;">`;
+    if (sidebarLogo) sidebarLogo.innerHTML = `<img src="${s.SYSTEM_LOGO}" alt="Logo" style="max-width:100%; max-height:70px; object-fit:contain; border-radius:8px;">`;
   }
 }
 
@@ -2989,16 +2989,49 @@ async function gasRun(fnName, args, onSuccess, onError) {
       result = { id: record.id, userId: uId, date: today, clockIn: record.clock_in_time, clockOut: time, locIn: record.clock_in_location, locOut: locationName, workHours: workHours, status: record.status };
     }
     else if (fnName === 'getSubordinatesAttendanceToday') {
-      const [uId] = args;
+      const uId = args[0] || APP_STATE.user.id;
       const today = getTodayStr();
-      const { data: users } = await supabaseClient.from('users').select('*').eq('supervisor_id', uId);
+
+      // Get user role and dept to determine hierarchy scope
+      const { data: currentUserData } = await supabaseClient.from('users').select('department, role').eq('id', uId).maybeSingle();
+      const userRole = currentUserData ? currentUserData.role : '';
+      const userDept = currentUserData ? currentUserData.department : '';
+
+      let usersQ = supabaseClient.from('users').select('*').eq('status', 'Aktif');
+      if (isAdminLevel(userRole)) {
+         // sees all
+      } else if (userRole === 'Dept Head' || userRole === 'Div Head') {
+          const { data: deptSubs } = await supabaseClient.from('users').select('id').eq('approver_2_id', uId);
+          const { data: divSubs } = await supabaseClient.from('users').select('id').eq('approver_3_id', uId);
+          const { data: directSubs } = await supabaseClient.from('users').select('id').eq('supervisor_id', uId);
+          let allSubIds = Array.from(new Set([
+             ...(deptSubs ? deptSubs.map(u=>u.id) : []),
+             ...(divSubs ? divSubs.map(u=>u.id) : []),
+             ...(directSubs ? directSubs.map(u=>u.id) : [])
+          ]));
+          if (allSubIds.length > 0) {
+              usersQ = usersQ.in('id', allSubIds);
+          } else if (userDept) {
+              usersQ = usersQ.eq('department', userDept);
+          } else {
+              usersQ = usersQ.eq('id', 'NONE');
+          }
+      } else {
+        usersQ = usersQ.eq('supervisor_id', uId);
+      }
+      
+      const { data: users } = await usersQ;
       let teamData = [];
       if (users && users.length > 0) {
           const teamIds = users.map(u => u.id);
           const { data: att } = await supabaseClient.from('attendance').select('*').eq('date', today).in('user_id', teamIds);
           teamData = users.map(u => {
               const a = att && att.find(x => x.user_id === u.id);
-              return { id: u.id, name: u.name, position: u.position, clockIn: a ? a.clock_in_time : '', clockOut: a ? a.clock_out_time : '', status: a ? a.status : 'Belum Hadir' };
+              return { 
+                 id: u.id, name: u.name, dept: u.department || '-', position: u.position, 
+                 clockIn: a ? a.clock_in_time : '', clockOut: a ? a.clock_out_time : '', 
+                 workHours: a ? a.work_hours : 0, status: a && a.clock_in_time ? 'Hadir' : 'Belum Hadir' 
+              };
           });
       }
       result = teamData;
@@ -5359,7 +5392,7 @@ function renderAdminEmployeeTodayPage() {
       </tr>
     `).join('');
   }
-  renderPaginationControls(tableId, state.page, totalPages, renderAdminEmployeeTodayPage);
+  renderPaginationFooter(tableId, totalItems, totalPages, state, renderAdminEmployeeTodayPage);
 }
 
 function renderAttendanceChart(data, canvasId = 'attendance-chart') {
