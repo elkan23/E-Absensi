@@ -2997,13 +2997,13 @@ async function gasRun(fnName, args, onSuccess, onError) {
       const userRole = currentUserData ? currentUserData.role : '';
       const userDept = currentUserData ? currentUserData.department : '';
 
-      let usersQ = supabaseClient.from('users').select('*').eq('status', 'Aktif');
+      let usersQ = supabaseClient.from('users').select('*').eq('status', 'Active');
       if (isAdminLevel(userRole)) {
          // sees all
-      } else if (userRole === 'Dept Head' || userRole === 'Div Head') {
-          const { data: deptSubs } = await supabaseClient.from('users').select('id').eq('approver_2_id', uId);
-          const { data: divSubs } = await supabaseClient.from('users').select('id').eq('approver_3_id', uId);
-          const { data: directSubs } = await supabaseClient.from('users').select('id').eq('supervisor_id', uId);
+      } else {
+          const { data: deptSubs } = await supabaseClient.from('users').select('id').eq('approver_2_id', uId).eq('status', 'Active');
+          const { data: divSubs } = await supabaseClient.from('users').select('id').eq('approver_3_id', uId).eq('status', 'Active');
+          const { data: directSubs } = await supabaseClient.from('users').select('id').eq('supervisor_id', uId).eq('status', 'Active');
           let allSubIds = Array.from(new Set([
              ...(deptSubs ? deptSubs.map(u=>u.id) : []),
              ...(divSubs ? divSubs.map(u=>u.id) : []),
@@ -3016,8 +3016,6 @@ async function gasRun(fnName, args, onSuccess, onError) {
           } else {
               usersQ = usersQ.eq('id', 'NONE');
           }
-      } else {
-        usersQ = usersQ.eq('supervisor_id', uId);
       }
       
       const { data: users } = await usersQ;
@@ -3528,15 +3526,16 @@ async function gasRun(fnName, args, onSuccess, onError) {
       const userDept = currentUserData ? currentUserData.department : '';
       const userRole = currentUserData ? currentUserData.role : role;
 
-      // 2. Fetch the relevant Karyawan list (only users with role 'Karyawan')
-      let usersQ = supabaseClient.from('users').select('*').eq('role', 'Karyawan');
+      // 2. Fetch the relevant Karyawan list (only users with role 'Karyawan' and status 'Active')
+      let usersQ = supabaseClient.from('users').select('*').eq('role', 'Karyawan').eq('status', 'Active');
 
       if (isAdminLevel(userRole)) {
         // Admin sees all employees
-      } else if (userRole === 'Dept Head' || userRole === 'Div Head') {
-          const { data: deptSubs } = await supabaseClient.from('users').select('id').eq('approver_2_id', uId);
-          const { data: divSubs } = await supabaseClient.from('users').select('id').eq('approver_3_id', uId);
-          const { data: directSubs } = await supabaseClient.from('users').select('id').eq('supervisor_id', uId);
+      } else {
+          // Dept Head, Div Head, Supervisor, Leader, Mentor, etc. see their members hierarchically
+          const { data: deptSubs } = await supabaseClient.from('users').select('id').eq('approver_2_id', uId).eq('status', 'Active');
+          const { data: divSubs } = await supabaseClient.from('users').select('id').eq('approver_3_id', uId).eq('status', 'Active');
+          const { data: directSubs } = await supabaseClient.from('users').select('id').eq('supervisor_id', uId).eq('status', 'Active');
           let allSubIds = Array.from(new Set([
              ...(deptSubs ? deptSubs.map(u=>u.id) : []),
              ...(divSubs ? divSubs.map(u=>u.id) : []),
@@ -3549,9 +3548,6 @@ async function gasRun(fnName, args, onSuccess, onError) {
           } else {
               usersQ = usersQ.eq('id', 'NONE');
           }
-      } else {
-        // Supervisor/Mentor sees their direct subordinates
-        usersQ = usersQ.eq('supervisor_id', uId);
       }
 
       const { data: usersData } = await usersQ;
@@ -4398,6 +4394,14 @@ function buildNav(role) {
   if (cleanRole === 'Manager' || cleanRole === 'General Manager' || cleanRole === 'Direktur' || cleanRole === 'Direktur Utama') menuRole = 'Supervisor';
 
   let items = NAV_MENU[menuRole] || NAV_MENU.Karyawan;
+  if (cleanRole === 'Dept Head' || cleanRole === 'Div Head') {
+    items = items.map(item => {
+      if (item.id === 'view-dashboard-supervisor') {
+        return { id: 'view-dashboard-admin', label: 'Dashboard', icon: '🏠' };
+      }
+      return item;
+    });
+  }
   
   if (APP_STATE.user && APP_STATE.user.accessibleMenus && APP_STATE.user.accessibleMenus.trim() !== '') {
     const allowed = APP_STATE.user.accessibleMenus.split(',').map(m => m.trim());
@@ -4619,7 +4623,7 @@ function initApp(user) {
   startClock();
 
   // Navigate to default dashboard
-  if (isSupervisorRole(user.role) || isAdminLevel(user.role)) {
+  if (isAdminLevel(user.role) || user.role === 'Dept Head' || user.role === 'Div Head') {
     navigateTo('view-dashboard-admin');
     loadAdminDashboard();
   } else if (isSupervisorRole(user.role)) {
@@ -5353,6 +5357,7 @@ function renderAdminEmployeeToday(data) {
      search: (item, q) => (item.name || '').toLowerCase().includes(q) || (item.dept || '').toLowerCase().includes(q),
      date: null
   }, renderAdminEmployeeTodayPage);
+  renderAdminEmployeeTodayPage();
 }
 
 function renderAdminEmployeeTodayPage() {
