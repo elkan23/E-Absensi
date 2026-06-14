@@ -3246,7 +3246,7 @@ async function gasRun(fnName, args, onSuccess, onError) {
       result = data.map(d => ({
         id: d.id, username: d.username, password: d.password, role: d.role, name: d.name, email: d.email, phone: d.phone,
         department: d.department, dept: d.department, position: d.position, noReg: d.no_reg,
-        supervisorId: d.supervisor_id, status: d.status === 'Active' ? 'Aktif' : (d.status === 'Inactive' ? 'Nonaktif' : d.status),
+        supervisorId: d.supervisor_id, approver2Id: d.approver_2_id, approver3Id: d.approver_3_id, status: d.status === 'Active' ? 'Aktif' : (d.status === 'Inactive' ? 'Nonaktif' : d.status),
         photoUrl: d.photo_url, joinDate: d.join_date, address: d.address,
         accessibleMenus: d.accessible_menus ? d.accessible_menus.split(',') : []
       }));
@@ -3257,7 +3257,7 @@ async function gasRun(fnName, args, onSuccess, onError) {
       result = data.map(d => ({
         id: d.id, username: d.username, password: d.password, role: d.role, name: d.name, email: d.email, phone: d.phone,
         department: d.department, dept: d.department, position: d.position, noReg: d.no_reg,
-        supervisorId: d.supervisor_id, status: d.status === 'Active' ? 'Aktif' : (d.status === 'Inactive' ? 'Nonaktif' : d.status),
+        supervisorId: d.supervisor_id, approver2Id: d.approver_2_id, approver3Id: d.approver_3_id, status: d.status === 'Active' ? 'Aktif' : (d.status === 'Inactive' ? 'Nonaktif' : d.status),
         photoUrl: d.photo_url, joinDate: d.join_date, address: d.address,
         accessibleMenus: d.accessible_menus ? d.accessible_menus.split(',') : []
       }));
@@ -3475,7 +3475,7 @@ async function gasRun(fnName, args, onSuccess, onError) {
       result = data.map(d => ({
         id: d.id, username: d.username, password: d.password, role: d.role, name: d.name, email: d.email, phone: d.phone,
         department: d.department, dept: d.department, position: d.position, noReg: d.no_reg,
-        supervisorId: d.supervisor_id, status: d.status === 'Active' ? 'Aktif' : (d.status === 'Inactive' ? 'Nonaktif' : d.status),
+        supervisorId: d.supervisor_id, approver2Id: d.approver_2_id, approver3Id: d.approver_3_id, status: d.status === 'Active' ? 'Aktif' : (d.status === 'Inactive' ? 'Nonaktif' : d.status),
         photoUrl: d.photo_url, joinDate: d.join_date, address: d.address,
         accessibleMenus: d.accessible_menus ? d.accessible_menus.split(',') : []
       }));
@@ -3486,7 +3486,7 @@ async function gasRun(fnName, args, onSuccess, onError) {
       result = data.map(d => ({
         id: d.id, username: d.username, password: d.password, role: d.role, name: d.name, email: d.email, phone: d.phone,
         department: d.department, dept: d.department, position: d.position, noReg: d.no_reg,
-        supervisorId: d.supervisor_id, status: d.status === 'Active' ? 'Aktif' : (d.status === 'Inactive' ? 'Nonaktif' : d.status),
+        supervisorId: d.supervisor_id, approver2Id: d.approver_2_id, approver3Id: d.approver_3_id, status: d.status === 'Active' ? 'Aktif' : (d.status === 'Inactive' ? 'Nonaktif' : d.status),
         photoUrl: d.photo_url, joinDate: d.join_date, address: d.address,
         accessibleMenus: d.accessible_menus ? d.accessible_menus.split(',') : []
       }));
@@ -3588,7 +3588,7 @@ async function gasRun(fnName, args, onSuccess, onError) {
       if (!empList || !empList.length) throw new Error("List kosong");
       
       const insertData = empList.map((emp, i) => {
-        const newId = genId('USR') + '-' + i;
+        const newId = emp.id || (genId('USR') + '-' + i);
         const dbStatus = emp.status === 'Aktif' ? 'Active' : (emp.status === 'Nonaktif' ? 'Inactive' : (emp.status || 'Active'));
         let menus = '';
         if (emp.accessibleMenus) menus = Array.isArray(emp.accessibleMenus) ? emp.accessibleMenus.join(',') : emp.accessibleMenus;
@@ -3616,9 +3616,9 @@ async function gasRun(fnName, args, onSuccess, onError) {
         };
       });
 
-      const { error } = await supabaseClient.from('users').insert(insertData);
+      const { error } = await supabaseClient.from('users').upsert(insertData);
       if (error) throw error;
-      await logActivity(APP_STATE.user.id, 'Import User', `Mengimpor ${insertData.length} data pengguna`);
+      await logActivity(APP_STATE.user.id, 'Import User', `Mengimpor/Update ${insertData.length} data pengguna`);
       result = { success: true, count: insertData.length };
     }
     else if (fnName === 'getAdminDashboardData') {
@@ -4458,11 +4458,24 @@ function updateClockUI(att) {
 
 function renderAttendanceHistory(history) {
   const tbody = document.getElementById('attendance-history-body');
-  if (!history || history.length === 0) {
+  
+  const config = {
+     search: false,
+     date: (item) => item.date
+  };
+  
+  renderTableControls('attendance-history-body', config, () => renderAttendanceHistory(history));
+  const filtered = filterDataByControls(history, 'attendance-history-body', config);
+
+  if (!filtered || filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Belum ada data kehadiran</div></div></td></tr>`;
+    renderPaginationFooter('attendance-history-body', 0, 1, {page:1, size:10}, () => {});
     return;
   }
-  tbody.innerHTML = history.map(a => `
+  
+  const { paginated, total, totalPages, state } = paginateData('attendance-history-body', filtered, 10);
+  
+  tbody.innerHTML = paginated.map(a => `
     <tr>
       <td>${formatDate(a.date)}</td>
       <td>${a.clockIn || '<span style="color:var(--text-secondary)">-</span>'}</td>
@@ -4472,6 +4485,8 @@ function renderAttendanceHistory(history) {
       <td>${(a.status === 'Hadir' || a.status === 'Present') ? '<span class="badge badge-success badge-dot">Hadir</span>' : '<span class="badge badge-warning badge-dot">Belum</span>'}</td>
     </tr>
   `).join('');
+  
+  renderPaginationFooter('attendance-history-body', total, totalPages, state, () => renderAttendanceHistory(history));
 }
 
 // ============================================================
@@ -5214,11 +5229,24 @@ function submitOvertime() {
 function renderOvertimeHistory(data) {
   const showName = (isSupervisorRole(APP_STATE.user.role) || isAdminLevel(APP_STATE.user.role));
   const tbody = document.getElementById('overtime-history-body');
-  if (!data || data.length === 0) {
+  
+  const config = {
+     search: showName ? (item, q) => (item.userName || '').toLowerCase().includes(q) || (item.activity || '').toLowerCase().includes(q) : (item, q) => (item.activity || '').toLowerCase().includes(q),
+     date: (item) => item.date
+  };
+  
+  renderTableControls('overtime-history-body', config, () => renderOvertimeHistory(data));
+  const filtered = filterDataByControls(data, 'overtime-history-body', config);
+
+  if (!filtered || filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Belum ada pengajuan lembur</div></div></td></tr>`;
+    renderPaginationFooter('overtime-history-body', 0, 1, {page:1, size:10}, () => {});
     return;
   }
-  tbody.innerHTML = data.map(ot => {
+  
+  const { paginated, total, totalPages, state } = paginateData('overtime-history-body', filtered, 10);
+  
+  tbody.innerHTML = paginated.map(ot => {
     const statusBadge = ot.status === 'Approved' ? '<span class="badge badge-success badge-dot">Disetujui</span>' :
                         ot.status === 'Rejected' ? '<span class="badge badge-danger badge-dot">Ditolak</span>' :
                         '<span class="badge badge-warning badge-dot">Pending</span>';
@@ -5234,6 +5262,8 @@ function renderOvertimeHistory(data) {
       <td style="max-width:150px;font-size:12px;">${ot.note || '-'}</td>
     </tr>`;
   }).join('');
+  
+  renderPaginationFooter('overtime-history-body', total, totalPages, state, () => renderOvertimeHistory(data));
 }
 
 // ============================================================
@@ -5285,11 +5315,24 @@ function loadApprovalData() {
 
 function renderApprovalLembur(data) {
   const tbody = document.getElementById('approval-lembur-body');
-  if (!data || data.length === 0) {
+  
+  const config = {
+     search: (item, q) => (item.employeeName || '').toLowerCase().includes(q) || (item.activity || '').toLowerCase().includes(q),
+     date: (item) => item.date
+  };
+  
+  renderTableControls('approval-lembur-body', config, () => renderApprovalLembur(data));
+  const filtered = filterDataByControls(data, 'approval-lembur-body', config);
+
+  if (!filtered || filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada pengajuan lembur</div></div></td></tr>`;
+    renderPaginationFooter('approval-lembur-body', 0, 1, {page:1, size:10}, () => {});
     return;
   }
-  tbody.innerHTML = data.map(ot => {
+  
+  const { paginated, total, totalPages, state } = paginateData('approval-lembur-body', filtered, 10);
+  
+  tbody.innerHTML = paginated.map(ot => {
     const statusBadge = ot.status === 'Approved' ? '<span class="badge badge-success badge-dot">Disetujui</span>' :
                         ot.status === 'Rejected' ? '<span class="badge badge-danger badge-dot">Ditolak</span>' :
                         '<span class="badge badge-warning badge-dot">Pending</span>';
@@ -5308,15 +5351,30 @@ function renderApprovalLembur(data) {
       <td>${actions}</td>
     </tr>`;
   }).join('');
+  
+  renderPaginationFooter('approval-lembur-body', total, totalPages, state, () => renderApprovalLembur(data));
 }
 
 function renderApprovalEdit(data) {
   const tbody = document.getElementById('approval-edit-body');
-  if (!data || data.length === 0) {
+  
+  const config = {
+     search: (item, q) => (item.employeeName || '').toLowerCase().includes(q) || (item.reason || '').toLowerCase().includes(q),
+     date: (item) => item.attendanceDate
+  };
+  
+  renderTableControls('approval-edit-body', config, () => renderApprovalEdit(data));
+  const filtered = filterDataByControls(data, 'approval-edit-body', config);
+
+  if (!filtered || filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada pengajuan koreksi</div></div></td></tr>`;
+    renderPaginationFooter('approval-edit-body', 0, 1, {page:1, size:10}, () => {});
     return;
   }
-  tbody.innerHTML = data.map(er => {
+  
+  const { paginated, total, totalPages, state } = paginateData('approval-edit-body', filtered, 10);
+  
+  tbody.innerHTML = paginated.map(er => {
     const statusBadge = er.status === 'Approved' ? '<span class="badge badge-success badge-dot">Disetujui</span>' :
                         er.status === 'Rejected' ? '<span class="badge badge-danger badge-dot">Ditolak</span>' :
                         '<span class="badge badge-warning badge-dot">Pending</span>';
@@ -5335,6 +5393,8 @@ function renderApprovalEdit(data) {
       <td>${actions}</td>
     </tr>`;
   }).join('');
+  
+  renderPaginationFooter('approval-edit-body', total, totalPages, state, () => renderApprovalEdit(data));
 }
 
 function handleApproveOT(id) {
@@ -5376,11 +5436,24 @@ function handleRejectEdit(id) {
 
 function renderApprovalLeave(data) {
   const tbody = document.getElementById('approval-leave-body');
-  if (!data || data.length === 0) {
+  
+  const config = {
+     search: (item, q) => (item.employeeName || '').toLowerCase().includes(q) || (item.reason || '').toLowerCase().includes(q) || (item.type || '').toLowerCase().includes(q),
+     date: (item) => item.startDate
+  };
+  
+  renderTableControls('approval-leave-body', config, () => renderApprovalLeave(data));
+  const filtered = filterDataByControls(data, 'approval-leave-body', config);
+
+  if (!filtered || filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada pengajuan cuti/izin</div></div></td></tr>`;
+    renderPaginationFooter('approval-leave-body', 0, 1, {page:1, size:10}, () => {});
     return;
   }
-  tbody.innerHTML = data.map(l => {
+  
+  const { paginated, total, totalPages, state } = paginateData('approval-leave-body', filtered, 10);
+  
+  tbody.innerHTML = paginated.map(l => {
     const statusBadge = l.status === 'Approved' ? '<span class="badge badge-success badge-dot">Disetujui</span>' :
                         l.status === 'Rejected' ? '<span class="badge badge-danger badge-dot">Ditolak</span>' :
                         '<span class="badge badge-warning badge-dot">Pending</span>';
@@ -5401,6 +5474,8 @@ function renderApprovalLeave(data) {
       <td>${actions}</td>
     </tr>`;
   }).join('');
+  
+  renderPaginationFooter('approval-leave-body', total, totalPages, state, () => renderApprovalLeave(data));
 }
 
 function handleApproveLeave(id) {
@@ -5684,6 +5759,151 @@ function exportReportExcel() {
 }
 
 // ============================================================
+// PAGINATION & FILTER UTILITY
+// ============================================================
+const PAGE_STATE = {};
+function renderTableControls(tableId, config, onFilterChange) {
+   if(!PAGE_STATE[tableId]) PAGE_STATE[tableId] = { page: 1, size: 10, search: '', startDate: '', endDate: '' };
+   const state = PAGE_STATE[tableId];
+   
+   const tbody = document.getElementById(tableId);
+   if(!tbody) return;
+   const tableWrapper = tbody.closest('.table-wrapper') || tbody.closest('table').parentElement;
+   let headerId = tableId + '-header-controls';
+   let headerDiv = document.getElementById(headerId);
+   if(!headerDiv) {
+      headerDiv = document.createElement('div');
+      headerDiv.id = headerId;
+      headerDiv.className = 'table-controls';
+      headerDiv.style.cssText = 'display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px; background:var(--bg-secondary); padding:10px; border-radius:8px; border:1px solid var(--border);';
+      tableWrapper.parentNode.insertBefore(headerDiv, tableWrapper);
+      
+      headerDiv.innerHTML = `
+         ${config.search ? `<input type="text" class="form-control" id="${tableId}-search" placeholder="Pencarian..." style="flex:1; min-width:200px;" value="${state.search || ''}">` : ''}
+         ${config.date ? `
+            <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+               <span style="font-size:12px; font-weight:600; color:var(--text-secondary);">Dari:</span>
+               <input type="date" class="form-control" id="${tableId}-start" value="${state.startDate || ''}" style="width:140px;">
+               <span style="font-size:12px; font-weight:600; color:var(--text-secondary);">Sampai:</span>
+               <input type="date" class="form-control" id="${tableId}-end" value="${state.endDate || ''}" style="width:140px;">
+            </div>
+         ` : ''}
+      `;
+      
+      if(config.search) {
+         document.getElementById(`${tableId}-search`).addEventListener('input', (e) => {
+            state.search = e.target.value.toLowerCase(); state.page = 1; onFilterChange();
+         });
+      }
+      if(config.date) {
+         document.getElementById(`${tableId}-start`).addEventListener('change', (e) => {
+            state.startDate = e.target.value; state.page = 1; onFilterChange();
+         });
+         document.getElementById(`${tableId}-end`).addEventListener('change', (e) => {
+            state.endDate = e.target.value; state.page = 1; onFilterChange();
+         });
+      }
+   }
+}
+
+function filterDataByControls(data, tableId, config) {
+   const state = PAGE_STATE[tableId];
+   if(!state) return data;
+   
+   let filtered = data;
+   if(config.search && state.search) {
+      filtered = filtered.filter(item => config.search(item, state.search));
+   }
+   if(config.date && state.startDate) {
+      filtered = filtered.filter(item => {
+         const d = config.date(item);
+         if(!d) return true;
+         return new Date(d).getTime() >= new Date(state.startDate).getTime();
+      });
+   }
+   if(config.date && state.endDate) {
+      filtered = filtered.filter(item => {
+         const d = config.date(item);
+         if(!d) return true;
+         return new Date(d).getTime() <= new Date(state.endDate + 'T23:59:59').getTime();
+      });
+   }
+   return filtered;
+}
+
+function paginateData(tableId, rawData, pageSize = 10) {
+   if(!PAGE_STATE[tableId]) PAGE_STATE[tableId] = { page: 1, size: pageSize };
+   const state = PAGE_STATE[tableId];
+   
+   const total = rawData.length;
+   const totalPages = state.size === 'all' ? 1 : Math.max(1, Math.ceil(total / state.size));
+   if(state.page > totalPages) state.page = totalPages;
+   if(state.page < 1) state.page = 1;
+   
+   let paginated = rawData;
+   if(state.size !== 'all') {
+      const start = (state.page - 1) * state.size;
+      paginated = rawData.slice(start, start + state.size);
+   }
+   
+   return { paginated, total, totalPages, state };
+}
+
+function renderPaginationFooter(tableId, total, totalPages, state, onPageChange) {
+   const tbody = document.getElementById(tableId);
+   if(!tbody) return;
+   const tableWrapper = tbody.closest('.table-wrapper') || tbody.closest('table').parentElement;
+   let footerId = tableId + '-pagination';
+   let footerDiv = document.getElementById(footerId);
+   if(!footerDiv) {
+      footerDiv = document.createElement('div');
+      footerDiv.id = footerId;
+      footerDiv.className = 'pagination-controls';
+      footerDiv.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-top:15px; font-size:12px; color:var(--text-secondary); flex-wrap:wrap; gap:10px; background:var(--card); padding:10px 15px; border-radius:8px; border:1px solid var(--border);';
+      tableWrapper.parentNode.insertBefore(footerDiv, tableWrapper.nextSibling);
+   }
+   
+   if(total === 0) {
+      footerDiv.style.display = 'none';
+      return;
+   }
+   footerDiv.style.display = 'flex';
+   
+   const start = state.size === 'all' ? 1 : (state.page - 1) * state.size + 1;
+   const end = state.size === 'all' ? total : Math.min(total, state.page * state.size);
+   
+   footerDiv.innerHTML = \`
+      <div style="display:flex; align-items:center; gap:10px;">
+         <span>Menampilkan \${start} - \${end} dari \${total} data</span>
+         <select id="\${tableId}-size" class="form-control" style="width:auto; padding:4px; font-size:11px; height:auto; min-height:unset;">
+            <option value="5" \${state.size===5?'selected':''}>5 / hal</option>
+            <option value="10" \${state.size===10?'selected':''}>10 / hal</option>
+            <option value="25" \${state.size===25?'selected':''}>25 / hal</option>
+            <option value="50" \${state.size===50?'selected':''}>50 / hal</option>
+            <option value="all" \${state.size==='all'?'selected':''}>Semua</option>
+         </select>
+      </div>
+      <div style="display:flex; gap:5px; align-items:center;">
+         <button class="btn btn-secondary btn-sm" id="\${tableId}-prev" \${state.page===1?'disabled':''} style="padding:4px 8px;">&laquo; Prev</button>
+         <span style="padding:4px 10px; background:var(--bg); border-radius:4px; font-weight:bold;">Hal \${state.page} / \${totalPages}</span>
+         <button class="btn btn-secondary btn-sm" id="\${tableId}-next" \${state.page===totalPages?'disabled':''} style="padding:4px 8px;">Next &raquo;</button>
+      </div>
+   \`;
+   
+   document.getElementById(\`\${tableId}-size\`).addEventListener('change', (e) => {
+      state.size = e.target.value === 'all' ? 'all' : parseInt(e.target.value);
+      state.page = 1;
+      onPageChange();
+   });
+   
+   const prevBtn = document.getElementById(\`\${tableId}-prev\`);
+   if(prevBtn) prevBtn.addEventListener('click', () => { state.page--; onPageChange(); });
+   
+   const nextBtn = document.getElementById(\`\${tableId}-next\`);
+   if(nextBtn) nextBtn.addEventListener('click', () => { state.page++; onPageChange(); });
+}
+
+// ============================================================
 //  DATA KARYAWAN
 // ============================================================
 let _allEmployees = [];
@@ -5720,10 +5940,13 @@ function renderEmployeesTable(data) {
 
   if (!filtered || filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada karyawan yang cocok dengan filter</div></div></td></tr>`;
+    renderPaginationFooter('employees-table-body', 0, 1, {page:1, size:10}, () => {});
     return;
   }
 
-  tbody.innerHTML = filtered.map(e => {
+  const { paginated, total, totalPages, state } = paginateData('employees-table-body', filtered, 10);
+
+  tbody.innerHTML = paginated.map(e => {
     const supervisor = _allEmployees.find(u => u.id === e.supervisorId);
     const roleClass = e.role === 'Admin' ? 'badge-info' : 'badge-secondary';
     const avatar = e.photoUrl
@@ -5753,6 +5976,8 @@ function renderEmployeesTable(data) {
       </td>
     </tr>`;
   }).join('');
+  
+  renderPaginationFooter('employees-table-body', total, totalPages, state, () => renderEmployeesTable(data));
 }
 
 function deleteEmployee(empId, name) {
@@ -6091,9 +6316,13 @@ function renderMentorTable(data) {
   if (!tbody) return;
   if (!data || data.length === 0) {
     tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Belum ada User/Mentor terdaftar</div></div></td></tr>`;
+    renderPaginationFooter('mentor-table-body', 0, 1, {page:1, size:10}, () => {});
     return;
   }
-  tbody.innerHTML = data.map((m, i) => {
+  
+  const { paginated, total, totalPages, state } = paginateData('mentor-table-body', data, 10);
+  
+  tbody.innerHTML = paginated.map((m, i) => {
     const statusBadge = m.status === 'Active'
       ? `<span class="badge badge-success badge-dot">Aktif</span>`
       : `<span class="badge badge-danger badge-dot">Nonaktif</span>`;
@@ -6124,6 +6353,8 @@ function renderMentorTable(data) {
       </td>
     </tr>`;
   }).join('');
+
+  renderPaginationFooter('mentor-table-body', total, totalPages, state, () => renderMentorTable(data));
 }
 
 function filterMentorTable(q) {
@@ -6572,11 +6803,24 @@ function submitEditAttendance() {
 function renderEditHistory(data) {
   const showName = (isSupervisorRole(APP_STATE.user.role) || isAdminLevel(APP_STATE.user.role));
   const tbody = document.getElementById('edit-history-body');
-  if (!data || data.length === 0) {
+
+  const config = {
+     search: showName ? (item, q) => (item.userName || '').toLowerCase().includes(q) || (item.reason || '').toLowerCase().includes(q) : (item, q) => (item.reason || '').toLowerCase().includes(q),
+     date: (item) => item.attendanceDate
+  };
+  
+  renderTableControls('edit-history-body', config, () => renderEditHistory(data));
+  const filtered = filterDataByControls(data, 'edit-history-body', config);
+
+  if (!filtered || filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Belum ada riwayat koreksi</div></div></td></tr>`;
+    renderPaginationFooter('edit-history-body', 0, 1, {page:1, size:10}, () => {});
     return;
   }
-  tbody.innerHTML = data.map(er => {
+  
+  const { paginated, total, totalPages, state } = paginateData('edit-history-body', filtered, 10);
+  
+  tbody.innerHTML = paginated.map(er => {
     const statusBadge = er.status === 'Approved' ? '<span class="badge badge-success badge-dot">Disetujui</span>' :
                         er.status === 'Rejected' ? '<span class="badge badge-danger badge-dot">Ditolak</span>' :
                         '<span class="badge badge-warning badge-dot">Pending</span>';
@@ -6592,6 +6836,8 @@ function renderEditHistory(data) {
       <td style="font-size:12px;">${er.note || ' '}</td>
     </tr>`;
   }).join('');
+  
+  renderPaginationFooter('edit-history-body', total, totalPages, state, () => renderEditHistory(data));
 }
 
 // ============================================================
@@ -6701,17 +6947,28 @@ function submitManual() {
 
 function renderManualHistory(data) {
   const tbody = document.getElementById('manual-history-body');
-  tbody.innerHTML = '';
-  if (data.length === 0) {
+  
+  const config = {
+     search: (item, q) => (item.reason || '').toLowerCase().includes(q) || (item.type || '').toLowerCase().includes(q),
+     date: (item) => item.date
+  };
+  
+  renderTableControls('manual-history-body', config, () => renderManualHistory(data));
+  const filtered = filterDataByControls(data, 'manual-history-body', config);
+
+  if (!filtered || filtered.length === 0) {
     tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Belum ada riwayat</div></div></td></tr>';
+    renderPaginationFooter('manual-history-body', 0, 1, {page:1, size:10}, () => {});
     return;
   }
-  data.forEach(function(r) {
+  
+  const { paginated, total, totalPages, state } = paginateData('manual-history-body', filtered, 10);
+  
+  tbody.innerHTML = paginated.map(r => {
     let badgeCls = 'badge-warning';
     if (r.status === 'Approved') badgeCls = 'badge-success';
     if (r.status === 'Rejected') badgeCls = 'badge-danger';
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
+    return `<tr>
       <td>${formatDateLong(r.date)}</td>
       <td>${r.clockIn || '-'}</td>
       <td>${r.clockOut || '-'}</td>
@@ -6719,9 +6976,10 @@ function renderManualHistory(data) {
       <td>${r.reason}</td>
       <td><span class="badge ${badgeCls}">${r.status}</span></td>
       <td>${r.approvedBy || '-'}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+    </tr>`;
+  }).join('');
+  
+  renderPaginationFooter('manual-history-body', total, totalPages, state, () => renderManualHistory(data));
 }
 
 function submitLeave() {
@@ -6764,12 +7022,24 @@ function renderLeaveHistory(data) {
   const user = APP_STATE.user;
   const showName = (isSupervisorRole(user.role) || isAdminLevel(user.role));
 
-  if (!data || data.length === 0) {
+  const config = {
+     search: showName ? (item, q) => (item.employeeName || '').toLowerCase().includes(q) || (item.reason || '').toLowerCase().includes(q) || (item.type || '').toLowerCase().includes(q) : (item, q) => (item.reason || '').toLowerCase().includes(q) || (item.type || '').toLowerCase().includes(q),
+     date: (item) => item.startDate
+  };
+  
+  renderTableControls('leave-history-body', config, () => renderLeaveHistory(data));
+  const filtered = filterDataByControls(data, 'leave-history-body', config);
+
+  if (!filtered || filtered.length === 0) {
     const colspan = showName ? "8" : "7";
-    tbody.innerHTML = `<tr><td colspan="${colspan}"><div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-text">Belum ada riwayat pengajuan</div></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${colspan}"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Belum ada riwayat pengajuan</div></div></td></tr>`;
+    renderPaginationFooter('leave-history-body', 0, 1, {page:1, size:10}, () => {});
     return;
   }
-  tbody.innerHTML = data.map(l => {
+  
+  const { paginated, total, totalPages, state } = paginateData('leave-history-body', filtered, 10);
+  
+  tbody.innerHTML = paginated.map(l => {
     const statusBadge = l.status === 'Approved' ? '<span class="badge badge-success badge-dot">Disetujui</span>' :
                         l.status === 'Rejected' ? '<span class="badge badge-danger badge-dot">Ditolak</span>' :
                         '<span class="badge badge-warning badge-dot">Pending</span>';
@@ -7121,44 +7391,50 @@ function processExcelUpload(event, defaultRole) {
       }
 
       const allExist = [...(_allEmployees || []), ...(_allMentorData || [])];
-      const existingUsernames = allExist.map(u => String(u.username||'').toLowerCase()).filter(u => u);
-
+      
       const toUpload = [];
-      const duplicates = [];
       const seenUsernamesInFile = new Set();
       
       empDataList.forEach(emp => {
           const uPattern = String(emp.username||'').toLowerCase();
+          
           if (!uPattern) {
              toUpload.push(emp);
              return;
           }
-          if (existingUsernames.includes(uPattern) || seenUsernamesInFile.has(uPattern)) {
-             duplicates.push(emp.username);
-          } else {
-             seenUsernamesInFile.add(uPattern);
-             toUpload.push(emp);
+          
+          if (seenUsernamesInFile.has(uPattern)) {
+             // duplicate inside the file itself, skip to avoid DB conflicts
+             return;
           }
+          seenUsernamesInFile.add(uPattern);
+          
+          // Check if user already exists
+          const existingUser = allExist.find(u => String(u.username||'').toLowerCase() === uPattern);
+          if (existingUser) {
+             // It's an update! We MUST keep the original ID so we don't break relations
+             emp.id = existingUser.id;
+             emp.isUpdate = true;
+             
+             // Preserve password if it wasn't provided in excel
+             if (!emp.password) {
+                 emp.password = existingUser.password;
+             }
+          }
+          
+          toUpload.push(emp);
       });
       
-      if (duplicates.length > 0) {
-         const msg = `Total data dibaca: ${empDataList.length}. Terdeteksi ${duplicates.length} baris dengan Username duplicate (sudah ada):\n[${duplicates.slice(0, 5).join(', ')}${duplicates.length > 5 ? ', ...' : ''}]\n\nApakah Anda ingin melanjutkan upload ${toUpload.length} data baru bersisa? (Data duplicate akan dilewati)`;
-         showConfirm('⚠️', 'Peringatan Duplikasi', msg, 'Ya, Lanjutkan', 'btn-primary', () => {
-           if(toUpload.length === 0){
-              showToast('warning', 'Info', 'Semua data memiliki username yang sudah terdaftar. Tidak ada input baru yang ditarik.');
-              return;
-           }
-           doUploadImport(toUpload);
-         });
-      } else {
-         showConfirm('⬆️', 'Upload Data', `Membaca ${empDataList.length} baris data.\n\nApakah Anda yakin ingin mengunggah ${toUpload.length} data karyawan/mentor baru?`, 'Ya, Unggah', 'btn-primary', () => {
-           if(toUpload.length === 0){
-              showToast('warning', 'Info', 'Tidak ada data baru yang bisa diunggah.');
-              return;
-           }
-           doUploadImport(toUpload);
-         });
-      }
+      const updateCount = toUpload.filter(u => u.isUpdate).length;
+      const newCount = toUpload.length - updateCount;
+      
+      showConfirm('⬆️', 'Upload Data', `Membaca ${empDataList.length} baris data.\n\nAkan mengunggah:\n- ${newCount} Data Baru\n- ${updateCount} Update Data\n\nLanjutkan?`, 'Ya, Unggah', 'btn-primary', () => {
+         if(toUpload.length === 0){
+            showToast('warning', 'Info', 'Tidak ada data valid yang bisa diunggah.');
+            return;
+         }
+         doUploadImport(toUpload);
+      });
 
       function doUploadImport(uploadList) {
          showLoading(`Mengunggah ${uploadList.length} data...`);
@@ -7346,11 +7622,24 @@ function renderApprovalManual(data) {
 function renderApprovalPassword(data) {
   const tbody = document.getElementById('approval-pwd-body');
   if (!tbody) return;
-  if (!data || data.length === 0) {
+  
+  const config = {
+     search: (item, q) => (item.employeeName || '').toLowerCase().includes(q) || (item.username || '').toLowerCase().includes(q) || (item.email || '').toLowerCase().includes(q),
+     date: (item) => item.requestDate
+  };
+  
+  renderTableControls('approval-pwd-body', config, () => renderApprovalPassword(data));
+  const filtered = filterDataByControls(data, 'approval-pwd-body', config);
+
+  if (!filtered || filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada pengajuan lupa password</div></div></td></tr>`;
+    renderPaginationFooter('approval-pwd-body', 0, 1, {page:1, size:10}, () => {});
     return;
   }
-  tbody.innerHTML = data.map(req => {
+  
+  const { paginated, total, totalPages, state } = paginateData('approval-pwd-body', filtered, 10);
+  
+  tbody.innerHTML = paginated.map(req => {
     const actions = req.status === 'Pending' ? `
       <div style="display:flex;gap:6px;">
         <button class="btn btn-success btn-sm" onclick="handleApprovePwd('${req.id}', '${req.username}')">✅ Setuju</button>
@@ -7369,6 +7658,8 @@ function renderApprovalPassword(data) {
       <td>${actions}</td>
     </tr>`;
   }).join('');
+  
+  renderPaginationFooter('approval-pwd-body', total, totalPages, state, () => renderApprovalPassword(data));
 }
 
 // function handleApproveManual(id) {
