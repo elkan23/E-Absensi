@@ -7422,6 +7422,18 @@ function processExcelUpload(event, defaultRole) {
              }
           }
           
+          // Map approver usernames to actual IDs
+          const mapUsernameToId = (val) => {
+             if (!val) return null;
+             const targetUsername = String(val).toLowerCase().trim();
+             const foundUser = allExist.find(u => String(u.username||'').toLowerCase() === targetUsername);
+             return foundUser ? foundUser.id : val; 
+          };
+          
+          emp.supervisor_id = mapUsernameToId(emp.supervisor_id);
+          emp.approver_2_id = mapUsernameToId(emp.approver_2_id);
+          emp.approver_3_id = mapUsernameToId(emp.approver_3_id);
+          
           toUpload.push(emp);
       });
       
