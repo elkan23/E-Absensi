@@ -1282,7 +1282,7 @@
       <div id="view-dashboard-admin" class="view">
         <div class="page-header">
           <div>
-            <div class="page-title">Dashboard Admin 👑</div>
+            <div class="page-title" id="admin-dash-title">Dashboard Admin 👑</div>
             <div class="page-subtitle" id="admin-dash-date"> </div>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -3014,8 +3014,21 @@ async function gasRun(fnName, args, onSuccess, onError) {
       if (isAdminLevel(userRole)) {
         // Admin sees all employees
       } else if (userRole === 'Dept Head' || userRole === 'Div Head') {
-        // Dept/Div Head sees employees in their department
-        usersQ = usersQ.eq('department', userDept);
+          const { data: deptSubs } = await supabaseClient.from('users').select('id').eq('approver_2_id', uId);
+          const { data: divSubs } = await supabaseClient.from('users').select('id').eq('approver_3_id', uId);
+          const { data: directSubs } = await supabaseClient.from('users').select('id').eq('supervisor_id', uId);
+          let allSubIds = Array.from(new Set([
+             ...(deptSubs ? deptSubs.map(u=>u.id) : []),
+             ...(divSubs ? divSubs.map(u=>u.id) : []),
+             ...(directSubs ? directSubs.map(u=>u.id) : [])
+          ]));
+          if (allSubIds.length > 0) {
+              usersQ = usersQ.in('id', allSubIds);
+          } else if (userDept) {
+              usersQ = usersQ.eq('department', userDept);
+          } else {
+              usersQ = usersQ.eq('id', 'NONE');
+          }
       } else {
         // Supervisor/Mentor sees their direct subordinates
         usersQ = usersQ.eq('supervisor_id', uId);
@@ -3484,8 +3497,21 @@ async function gasRun(fnName, args, onSuccess, onError) {
       if (isAdminLevel(userRole)) {
         // Admin sees all employees
       } else if (userRole === 'Dept Head' || userRole === 'Div Head') {
-        // Dept/Div Head sees employees in their department
-        usersQ = usersQ.eq('department', userDept);
+          const { data: deptSubs } = await supabaseClient.from('users').select('id').eq('approver_2_id', uId);
+          const { data: divSubs } = await supabaseClient.from('users').select('id').eq('approver_3_id', uId);
+          const { data: directSubs } = await supabaseClient.from('users').select('id').eq('supervisor_id', uId);
+          let allSubIds = Array.from(new Set([
+             ...(deptSubs ? deptSubs.map(u=>u.id) : []),
+             ...(divSubs ? divSubs.map(u=>u.id) : []),
+             ...(directSubs ? directSubs.map(u=>u.id) : [])
+          ]));
+          if (allSubIds.length > 0) {
+              usersQ = usersQ.in('id', allSubIds);
+          } else if (userDept) {
+              usersQ = usersQ.eq('department', userDept);
+          } else {
+              usersQ = usersQ.eq('id', 'NONE');
+          }
       } else {
         // Supervisor/Mentor sees their direct subordinates
         usersQ = usersQ.eq('supervisor_id', uId);
@@ -3765,8 +3791,21 @@ async function gasRun(fnName, args, onSuccess, onError) {
       if (isAdminLevel(userRole)) {
         // Admin sees all employees
       } else if (userRole === 'Dept Head' || userRole === 'Div Head') {
-        // Dept/Div Head sees employees in their department
-        usersQ = usersQ.eq('department', userDept);
+          const { data: deptSubs } = await supabaseClient.from('users').select('id').eq('approver_2_id', uId);
+          const { data: divSubs } = await supabaseClient.from('users').select('id').eq('approver_3_id', uId);
+          const { data: directSubs } = await supabaseClient.from('users').select('id').eq('supervisor_id', uId);
+          let allSubIds = Array.from(new Set([
+             ...(deptSubs ? deptSubs.map(u=>u.id) : []),
+             ...(divSubs ? divSubs.map(u=>u.id) : []),
+             ...(directSubs ? directSubs.map(u=>u.id) : [])
+          ]));
+          if (allSubIds.length > 0) {
+              usersQ = usersQ.in('id', allSubIds);
+          } else if (userDept) {
+              usersQ = usersQ.eq('department', userDept);
+          } else {
+              usersQ = usersQ.eq('id', 'NONE');
+          }
       } else {
         // Supervisor/Mentor sees their direct subordinates
         usersQ = usersQ.eq('supervisor_id', uId);
@@ -5139,6 +5178,9 @@ function loadAdminDashboard() {
   const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
   const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
   document.getElementById('admin-dash-date').textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+
+  const isDeptDiv = (APP_STATE.user.role === 'Dept Head' || APP_STATE.user.role === 'Div Head');
+  document.getElementById('admin-dash-title').textContent = isDeptDiv ? 'Dashboard 🏠' : 'Dashboard Admin 👑';
 
   showLoading('Memuat dashboard admin...');
 
