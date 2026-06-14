@@ -801,7 +801,7 @@
         <label class="form-label">Username</label>
         <div class="input-group">
           <input type="text" id="login-username" class="form-control" placeholder="Masukkan username..." autocomplete="username" />
-          <span class="input-suffix">👁️</span>
+          <span class="input-suffix">👤</span>
         </div>
       </div>
       <div class="form-group" style="margin-bottom: 8px;">
@@ -5872,34 +5872,34 @@ function renderPaginationFooter(tableId, total, totalPages, state, onPageChange)
    const start = state.size === 'all' ? 1 : (state.page - 1) * state.size + 1;
    const end = state.size === 'all' ? total : Math.min(total, state.page * state.size);
    
-   footerDiv.innerHTML = \`
+   footerDiv.innerHTML = `
       <div style="display:flex; align-items:center; gap:10px;">
-         <span>Menampilkan \${start} - \${end} dari \${total} data</span>
-         <select id="\${tableId}-size" class="form-control" style="width:auto; padding:4px; font-size:11px; height:auto; min-height:unset;">
-            <option value="5" \${state.size===5?'selected':''}>5 / hal</option>
-            <option value="10" \${state.size===10?'selected':''}>10 / hal</option>
-            <option value="25" \${state.size===25?'selected':''}>25 / hal</option>
-            <option value="50" \${state.size===50?'selected':''}>50 / hal</option>
-            <option value="all" \${state.size==='all'?'selected':''}>Semua</option>
+         <span>Menampilkan ${start} - ${end} dari ${total} data</span>
+         <select id="${tableId}-size" class="form-control" style="width:auto; padding:4px; font-size:11px; height:auto; min-height:unset;">
+            <option value="5" ${state.size===5?'selected':''}>5 / hal</option>
+            <option value="10" ${state.size===10?'selected':''}>10 / hal</option>
+            <option value="25" ${state.size===25?'selected':''}>25 / hal</option>
+            <option value="50" ${state.size===50?'selected':''}>50 / hal</option>
+            <option value="all" ${state.size==='all'?'selected':''}>Semua</option>
          </select>
       </div>
       <div style="display:flex; gap:5px; align-items:center;">
-         <button class="btn btn-secondary btn-sm" id="\${tableId}-prev" \${state.page===1?'disabled':''} style="padding:4px 8px;">&laquo; Prev</button>
-         <span style="padding:4px 10px; background:var(--bg); border-radius:4px; font-weight:bold;">Hal \${state.page} / \${totalPages}</span>
-         <button class="btn btn-secondary btn-sm" id="\${tableId}-next" \${state.page===totalPages?'disabled':''} style="padding:4px 8px;">Next &raquo;</button>
+         <button class="btn btn-secondary btn-sm" id="${tableId}-prev" ${state.page===1?'disabled':''} style="padding:4px 8px;">&laquo; Prev</button>
+         <span style="padding:4px 10px; background:var(--bg); border-radius:4px; font-weight:bold;">Hal ${state.page} / ${totalPages}</span>
+         <button class="btn btn-secondary btn-sm" id="${tableId}-next" ${state.page===totalPages?'disabled':''} style="padding:4px 8px;">Next &raquo;</button>
       </div>
-   \`;
+   `;
    
-   document.getElementById(\`\${tableId}-size\`).addEventListener('change', (e) => {
+   document.getElementById(`${tableId}-size`).addEventListener('change', (e) => {
       state.size = e.target.value === 'all' ? 'all' : parseInt(e.target.value);
       state.page = 1;
       onPageChange();
    });
    
-   const prevBtn = document.getElementById(\`\${tableId}-prev\`);
+   const prevBtn = document.getElementById(`${tableId}-prev`);
    if(prevBtn) prevBtn.addEventListener('click', () => { state.page--; onPageChange(); });
    
-   const nextBtn = document.getElementById(\`\${tableId}-next\`);
+   const nextBtn = document.getElementById(`${tableId}-next`);
    if(nextBtn) nextBtn.addEventListener('click', () => { state.page++; onPageChange(); });
 }
 
