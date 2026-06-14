@@ -1491,10 +1491,15 @@
 
         <!-- TAB: LEMBUR -->
         <div class="tab-panel active" id="approval-tab-lembur">
+          <div style="margin-bottom:12px; display:flex; gap:8px;">
+            <button class="btn btn-success btn-sm" onclick="bulkApprove('overtime', 'approval-lembur-body')">✅ Setujui Terpilih</button>
+            <button class="btn btn-danger btn-sm" onclick="bulkReject('overtime', 'approval-lembur-body')">❌ Tolak Terpilih</button>
+          </div>
           <div class="table-wrapper">
             <table class="data-table">
               <thead>
                 <tr>
+                  <th style="width:40px;"><input type="checkbox" onchange="toggleSelectAllApproval(this, 'approval-lembur-body')"></th>
                   <th>Karyawan</th>
                   <th>Tanggal</th>
                   <th>Jam Lembur</th>
@@ -1513,10 +1518,15 @@
 
         <!-- TAB: EDIT ABSEN -->
         <div class="tab-panel" id="approval-tab-edit">
+          <div style="margin-bottom:12px; display:flex; gap:8px;">
+            <button class="btn btn-success btn-sm" onclick="bulkApprove('editrequest', 'approval-edit-body')">✅ Setujui Terpilih</button>
+            <button class="btn btn-danger btn-sm" onclick="bulkReject('editrequest', 'approval-edit-body')">❌ Tolak Terpilih</button>
+          </div>
           <div class="table-wrapper">
             <table class="data-table">
               <thead>
                 <tr>
+                  <th style="width:40px;"><input type="checkbox" onchange="toggleSelectAllApproval(this, 'approval-edit-body')"></th>
                   <th>Karyawan</th>
                   <th>Tanggal Absen</th>
                   <th>Absen Asli</th>
@@ -1535,10 +1545,15 @@
 
         <!-- TAB: CUTI & IZIN -->
         <div class="tab-panel" id="approval-tab-leave">
+          <div style="margin-bottom:12px; display:flex; gap:8px;">
+            <button class="btn btn-success btn-sm" onclick="bulkApprove('leave', 'approval-leave-body')">✅ Setujui Terpilih</button>
+            <button class="btn btn-danger btn-sm" onclick="bulkReject('leave', 'approval-leave-body')">❌ Tolak Terpilih</button>
+          </div>
           <div class="table-wrapper">
             <table class="data-table">
               <thead>
                 <tr>
+                  <th style="width:40px;"><input type="checkbox" onchange="toggleSelectAllApproval(this, 'approval-leave-body')"></th>
                   <th>Karyawan</th>
                   <th>Mulai - Selesai</th>
                   <th>Jenis</th>
@@ -3525,6 +3540,13 @@ async function gasRun(fnName, args, onSuccess, onError) {
         updateData.password = emp.password;
       }
 
+      if (updateData.no_reg) {
+         const { data: existNoReg } = await supabaseClient.from('users').select('id').eq('no_reg', updateData.no_reg).neq('id', newId).maybeSingle();
+         if (existNoReg) {
+            throw new Error('Noreg / NIK sudah terdaftar pada pengguna lain');
+         }
+      }
+
       const { error } = await supabaseClient.from('users').upsert(updateData);
       if (error) throw error;
       await logActivity(APP_STATE.user.id, 'Simpan Karyawan', `Menyimpan data karyawan ${emp.name}`);
@@ -3562,6 +3584,13 @@ async function gasRun(fnName, args, onSuccess, onError) {
 
       if (mentor.password && mentor.password.trim() !== '') {
         updateData.password = mentor.password;
+      }
+
+      if (updateData.no_reg) {
+         const { data: existNoReg } = await supabaseClient.from('users').select('id').eq('no_reg', updateData.no_reg).neq('id', newId).maybeSingle();
+         if (existNoReg) {
+            throw new Error('Noreg / NIK sudah terdaftar pada pengguna lain');
+         }
       }
 
       const { error } = await supabaseClient.from('users').upsert(updateData);
@@ -4784,7 +4813,7 @@ function loadSupervisorDashboard() {
         return `
           <div class="approval-card">
             <div class="approval-card-info">
-              <div class="approval-card-name">${item.employeeName}</div>
+              <div class="approval-card-name">${item.name || item.userName || item.employeeName || 'Tanpa Nama'}</div>
               <div class="approval-card-type">${typeLabel}</div>
               <div class="approval-card-details">${detailsHtml}</div>
             </div>
@@ -5040,7 +5069,7 @@ function loadAdminDashboard() {
             const isOT = item.type === 'overtime';
             return `<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;">
               <div>
-                <div style="font-weight:600;font-size:13px;">${item.userName}</div>
+                <div style="font-weight:600;font-size:13px;">${item.name || item.userName || item.employeeName || 'Tanpa Nama'}</div>
                 <div style="font-size:11px;color:var(--text-secondary);">${isOT ? '⏱️ Lembur' : '📝 Koreksi'} - ${formatDateLong(isOT ? item.date : item.attendanceDate)}</div>
               </div>
               <button class="btn btn-primary btn-sm" onclick="goToApproval('${isOT ? 'lembur' : 'edit'}')">Lihat</button>
@@ -5341,7 +5370,9 @@ function renderApprovalLembur(data) {
         <button class="btn btn-success btn-sm" onclick="handleApproveOT('${ot.id}')">✅ Setuju</button>
         <button class="btn btn-danger btn-sm" onclick="handleRejectOT('${ot.id}')">❌ Tolak</button>
       </div>` : `<span style="font-size:12px;color:var(--text-secondary);">${ot.approvedBy || 'Admin'}</span>`;
+    const cb = ot.status === 'Pending' ? `<input type="checkbox" class="approval-cb" value="${ot.id}">` : '';
     return `<tr>
+      <td>${cb}</td>
       <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">${getInitials(ot.employeeName)}</div><span>${ot.employeeName}</span></div></td>
       <td>${formatDate(ot.date)}</td>
       <td>${ot.startTime} - ${ot.endTime}</td>
@@ -5383,7 +5414,9 @@ function renderApprovalEdit(data) {
         <button class="btn btn-success btn-sm" onclick="handleApproveEdit('${er.id}')">✅ Setuju</button>
         <button class="btn btn-danger btn-sm" onclick="handleRejectEdit('${er.id}')">❌ Tolak</button>
       </div>` : `<span style="font-size:12px;color:var(--text-secondary);">-</span>`;
+    const cb = er.status === 'Pending' ? `<input type="checkbox" class="approval-cb" value="${er.id}">` : '';
     return `<tr>
+      <td>${cb}</td>
       <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">${getInitials(er.employeeName)}</div><span>${er.employeeName}</span></div></td>
       <td>${formatDate(er.attendanceDate)}</td>
       <td><span style="font-size:12px;">${er.originalIn || '--:--'} / ${er.originalOut || '--:--'}</span></td>
@@ -5457,6 +5490,7 @@ function renderApprovalLeave(data) {
     const statusBadge = l.status === 'Approved' ? '<span class="badge badge-success badge-dot">Disetujui</span>' :
                         l.status === 'Rejected' ? '<span class="badge badge-danger badge-dot">Ditolak</span>' :
                         '<span class="badge badge-warning badge-dot">Pending</span>';
+    const cb = l.status === 'Pending' ? `<input type="checkbox" class="approval-cb" value="${l.id}">` : '';
     let actions = l.status === 'Pending' ? `
       <div style="display:flex;gap:6px;">
         <button class="btn btn-success btn-sm" onclick="handleApproveLeave('${l.id}')">✅ Setuju</button>
@@ -5549,7 +5583,12 @@ function initReportView() {
     document.getElementById('report-employee-filter-group').style.display = '';
     gasRun('getAllEmployees', [],
       function(employees) {
-        let members = employees.filter(e => e.id !== user.id);
+        let members = employees.filter(e => {
+          if (e.id === user.id) return false;
+          if (user.role === 'Div Head') return e.department === user.department || e.approver3Id === user.id;
+          if (user.role === 'Dept Head') return e.department === user.department || e.approver2Id === user.id;
+          return e.supervisorId === user.id;
+        });
         if (members.length === 0) {
           empSelect.innerHTML = `<option value="">-- Tidak ada member --</option>`;
           empSelect.disabled = true;
@@ -7394,8 +7433,11 @@ function processExcelUpload(event, defaultRole) {
       
       const toUpload = [];
       const seenUsernamesInFile = new Set();
+      const seenNoRegInFile = new Set();
+      let uploadHasError = false;
       
       empDataList.forEach(emp => {
+          if (uploadHasError) return;
           const uPattern = String(emp.username||'').toLowerCase();
           
           if (!uPattern) {
@@ -7408,6 +7450,24 @@ function processExcelUpload(event, defaultRole) {
              return;
           }
           seenUsernamesInFile.add(uPattern);
+
+          const noReg = String(emp.no_reg || '').toLowerCase().trim();
+          if (noReg) {
+             if (seenNoRegInFile.has(noReg)) {
+                 showToast('error', 'Error Data', `Noreg/NIK duplikat dalam file Excel: ${emp.no_reg}`);
+                 uploadHasError = true;
+                 return;
+             }
+             seenNoRegInFile.add(noReg);
+             
+             // Check if it exists in DB for a different user
+             const existingNoRegUser = allExist.find(u => String(u.no_reg || '').toLowerCase() === noReg && String(u.username || '').toLowerCase() !== uPattern);
+             if (existingNoRegUser) {
+                 showToast('error', 'Error Data', `Noreg/NIK (${emp.no_reg}) sudah terdaftar pada pengguna lain (${existingNoRegUser.username}).`);
+                 uploadHasError = true;
+                 return;
+             }
+          }
           
           // Check if user already exists
           const existingUser = allExist.find(u => String(u.username||'').toLowerCase() === uPattern);
@@ -7439,6 +7499,11 @@ function processExcelUpload(event, defaultRole) {
       
       const updateCount = toUpload.filter(u => u.isUpdate).length;
       const newCount = toUpload.length - updateCount;
+      
+      if (uploadHasError) {
+          event.target.value = '';
+          return;
+      }
       
       showConfirm('⬆️', 'Upload Data', `Membaca ${empDataList.length} baris data.\n\nAkan mengunggah:\n- ${newCount} Data Baru\n- ${updateCount} Update Data\n\nLanjutkan?`, 'Ya, Unggah', 'btn-primary', () => {
          if(toUpload.length === 0){
