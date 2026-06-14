@@ -3162,6 +3162,8 @@ async function gasRun(fnName, args, onSuccess, onError) {
     }
     else if (fnName === 'submitOvertime') {
       const [uId, date, start, end, total, act] = args;
+      const { data: existOt } = await supabaseClient.from('overtime').select('id').eq('user_id', uId).eq('date', date).in('status', ['Pending', 'Approved']).maybeSingle();
+      if (existOt) return { success: false, message: 'Anda sudah mengajukan lembur pada tanggal tersebut.' };
       const newId = fnName === 'clockIn' ? genId('CT') : fnName === 'submitOvertime' ? genId('OT') : genId('ID');
       const { data: att } = await supabaseClient.from('attendance').select('id').eq('user_id', uId).eq('date', date).maybeSingle();
       const attId = att ? att.id : '';
@@ -3175,6 +3177,8 @@ async function gasRun(fnName, args, onSuccess, onError) {
     }
     else if (fnName === 'submitEditRequest') {
       const [uId, attId, date, origIn, origOut, reqIn, reqOut, reason] = args;
+      const { data: existEr } = await supabaseClient.from('edit_requests').select('id').eq('user_id', uId).eq('request_date', date).in('status', ['Pending', 'Approved']).maybeSingle();
+      if (existEr) return { success: false, message: 'Anda sudah mengajukan koreksi absen pada tanggal tersebut.' };
       const { error } = await supabaseClient.from('edit_requests').insert({
         id: genId('ER'), attendance_id: attId, user_id: uId, request_date: date, original_clock_in: origIn, original_clock_out: origOut,
         requested_clock_in: reqIn, requested_clock_out: reqOut, reason: reason, status: 'Pending', approved_at: getTodayStr()
@@ -3205,6 +3209,8 @@ async function gasRun(fnName, args, onSuccess, onError) {
     }
     else if (fnName === 'submitLeave') {
       const [uId, type, start, end, reason, proof] = args;
+      const { data: existLv } = await supabaseClient.from('leave').select('id').eq('user_id', uId).in('status', ['Pending', 'Approved']).lte('start_date', end).gte('end_date', start);
+      if (existLv && existLv.length > 0) return { success: false, message: 'Tanggal cuti/izin beririsan dengan pengajuan sebelumnya.' };
       const { error } = await supabaseClient.from('leave').insert({
         id: genId('LV'), user_id: uId, type: type, start_date: start, end_date: end, reason: reason, proof_url: proof, status: 'Pending', approved_at: getTodayStr()
       });
@@ -3923,6 +3929,8 @@ else if (fnName === 'getTeamOvertimes') {
     }
     else if (fnName === 'submitManualAttendance') {
       const [uId, date, clockIn, clockOut, type, reason] = args;
+      const { data: existMn } = await supabaseClient.from('manual_attendance').select('id').eq('user_id', uId).eq('date', date).in('status', ['Pending', 'Approved']).maybeSingle();
+      if (existMn) return { success: false, message: 'Anda sudah mengajukan absen manual pada tanggal tersebut.' };
       const newId = genId('MN');
       const { error } = await supabaseClient.from('manual_attendance').insert({
         id: newId, user_id: uId, date: date, clock_in: clockIn, clock_out: clockOut,
@@ -5237,9 +5245,13 @@ function submitOvertime() {
   btn.innerHTML = '<span class="btn-spinner"></span> Mengirim...';
 
   gasRun('submitOvertime', [user.id, date, start, end, totalHours, activity],
-    function() {
+    function(res) {
       btn.disabled = false;
       btn.innerHTML = '📤 Kirim Pengajuan Lembur';
+      if (res && res.success === false) {
+        showToast('error', 'Gagal', res.message);
+        return;
+      }
       showToast('success', 'Berhasil!', 'Pengajuan lembur berhasil dikirim dan menunggu persetujuan.');
       document.getElementById('ot-activity').value = '';
       document.getElementById('ot-start').value = '';
