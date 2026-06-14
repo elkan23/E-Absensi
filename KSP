@@ -7019,12 +7019,14 @@ function downloadEmployeeTemplate() {
     "No HP",
     "Alamat",
     "Tanggal Join (YYYY-MM-DD)",
-    "Username/NIK Atasan"
+    "Username/NIK Atasan",
+    "Username Dept Head",
+    "Username Div Head"
   ];
 
   const data = [
     headers,
-    ["(HAPUS) userXYZ", "pass123", "Joko Karyawan", "Karyawan", "joko@domain.com", "KAR-001", "IT", "Staff", "08123", "Jakarta", "2023-01-01", "agus (Isi Username/NIK Atasan)"],
+    ["(HAPUS) userXYZ", "pass123", "Joko Karyawan", "Karyawan", "joko@domain.com", "KAR-001", "IT", "Staff", "08123", "Jakarta", "2023-01-01", "agus (Isi Username/NIK Atasan)", "budi (Isi Dept Head)", "cici (Isi Div Head)"],
   ];
 
   const ws = XLSX.utils.aoa_to_sheet(data);
