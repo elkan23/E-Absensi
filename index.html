@@ -3562,11 +3562,23 @@ async function gasRun(fnName, args, onSuccess, onError) {
         last7Days.push({ label: `${dayName} (${d.getDate()}/${d.getMonth()+1})`, count: count });
       }
 
+      // 6. Calculate Total Lembur Bulan Ini (Approved)
+      let teamOtTotal = 0;
+      if (teamIds.length > 0) {
+        const currentMonthPrefix = today.substring(0, 7);
+        const { data: otRes } = await supabaseClient.from('overtime')
+          .select('total_hours')
+          .in('user_id', teamIds)
+          .eq('status', 'Approved')
+          .like('date', currentMonthPrefix + '%');
+        teamOtTotal = otRes ? otRes.reduce((sum, item) => sum + (parseFloat(item.total_hours) || 0), 0) : 0;
+      }
+
       result = {
           hadirToday: hadir,
           totalKaryawan: total,
           pendingTotal: 0,
-          totalLembur: 0,
+          totalLembur: teamOtTotal,
           last7Chart: last7Days
       };
     }
@@ -3856,11 +3868,23 @@ async function gasRun(fnName, args, onSuccess, onError) {
         last7Days.push({ label: `${dayName} (${d.getDate()}/${d.getMonth()+1})`, count: count });
       }
 
+      // 6. Calculate Total Lembur Bulan Ini (Approved)
+      let teamOtTotal = 0;
+      if (teamIds.length > 0) {
+        const currentMonthPrefix = today.substring(0, 7);
+        const { data: otRes } = await supabaseClient.from('overtime')
+          .select('total_hours')
+          .in('user_id', teamIds)
+          .eq('status', 'Approved')
+          .like('date', currentMonthPrefix + '%');
+        teamOtTotal = otRes ? otRes.reduce((sum, item) => sum + (parseFloat(item.total_hours) || 0), 0) : 0;
+      }
+
       result = {
           hadirToday: hadir,
           totalKaryawan: total,
           pendingTotal: 0,
-          totalLembur: 0,
+          totalLembur: teamOtTotal,
           last7Chart: last7Days
       };
     }
