@@ -1,4 +1,4 @@
-?<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
@@ -3582,6 +3582,44 @@ async function gasRun(fnName, args, onSuccess, onError) {
       if (error) throw error;
       await logActivity(APP_STATE.user.id, 'Hapus Mentor', `Menghapus mentor ${id}`);
       result = true;
+    }
+    else if (fnName === 'batchImportEmployees') {
+      const [empList] = args;
+      if (!empList || !empList.length) throw new Error("List kosong");
+      
+      const insertData = empList.map(emp => {
+        const newId = genId('USR');
+        const dbStatus = emp.status === 'Aktif' ? 'Active' : (emp.status === 'Nonaktif' ? 'Inactive' : (emp.status || 'Active'));
+        let menus = '';
+        if (emp.accessibleMenus) menus = Array.isArray(emp.accessibleMenus) ? emp.accessibleMenus.join(',') : emp.accessibleMenus;
+        else if (emp.accessible_menus) menus = Array.isArray(emp.accessible_menus) ? emp.accessible_menus.join(',') : emp.accessible_menus;
+        
+        return {
+          id: newId,
+          username: emp.username,
+          password: emp.password || '123456',
+          role: emp.role || 'Karyawan',
+          name: emp.name,
+          email: emp.email || '',
+          phone: emp.phone || '',
+          department: emp.department || emp.dept || '',
+          position: emp.position || '',
+          no_reg: emp.noReg || emp.no_reg || '',
+          supervisor_id: emp.supervisorId || emp.supervisor_id || null,
+          approver_2_id: emp.approver2Id || emp.approver_2_id || null,
+          approver_3_id: emp.approver3Id || emp.approver_3_id || null,
+          status: dbStatus,
+          photo_url: emp.photoUrl || emp.photo_url || null,
+          join_date: emp.joinDate || emp.join_date || null,
+          address: emp.address || '',
+          accessible_menus: menus
+        };
+      });
+
+      const { error } = await supabaseClient.from('users').insert(insertData);
+      if (error) throw error;
+      await logActivity(APP_STATE.user.id, 'Import User', `Mengimpor ${insertData.length} data pengguna`);
+      result = { success: true, count: insertData.length };
     }
     else if (fnName === 'getAdminDashboardData') {
       const uId = args[0] || APP_STATE.user.id;
