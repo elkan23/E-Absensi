@@ -3040,9 +3040,33 @@ async function gasRun(fnName, args, onSuccess, onError) {
       let ot = [], lv = [], er = [], mn = [];
 
       if (teamIds.length > 0) {
-        // Fetch pending overtime
-        const { data: otRes } = await supabaseClient.from('overtime').select('*').eq('status', 'Pending').in('user_id', teamIds);
-        const otData = otRes || [];
+        // Fetch pending overtime with tiered logic
+        let otData = [];
+        if (isAdminLevel(userRole)) {
+           const { data: otRes } = await supabaseClient.from('overtime').select('*').in('status', ['Pending', 'Pending Dept Head', 'Pending Div Head']).in('user_id', teamIds);
+           otData = otRes || [];
+        } else {
+           const { data: directSubs } = await supabaseClient.from('users').select('id').eq('supervisor_id', uId);
+           const directIds = directSubs ? directSubs.map(u => u.id) : [];
+           const { data: deptSubs } = await supabaseClient.from('users').select('id').eq('approver_2_id', uId);
+           const deptIds = deptSubs ? deptSubs.map(u => u.id) : [];
+           const { data: divSubs } = await supabaseClient.from('users').select('id').eq('approver_3_id', uId);
+           const divIds = divSubs ? divSubs.map(u => u.id) : [];
+
+           if (directIds.length > 0) {
+              const { data: otRes1 } = await supabaseClient.from('overtime').select('*').eq('status', 'Pending').in('user_id', directIds);
+              if (otRes1) otData.push(...otRes1);
+           }
+           if (deptIds.length > 0) {
+              const { data: otRes2 } = await supabaseClient.from('overtime').select('*').eq('status', 'Pending Dept Head').in('user_id', deptIds);
+              if (otRes2) otData.push(...otRes2);
+           }
+           if (divIds.length > 0) {
+              const { data: otRes3 } = await supabaseClient.from('overtime').select('*').eq('status', 'Pending Div Head').in('user_id', divIds);
+              if (otRes3) otData.push(...otRes3);
+           }
+        }
+        
         ot = otData.map(d => ({
           id: d.id, userId: d.user_id, name: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
           date: d.date, startTime: d.start_time, endTime: d.end_time, totalHours: d.total_hours,
@@ -3212,7 +3236,22 @@ async function gasRun(fnName, args, onSuccess, onError) {
       else if(type === 'manual') table = 'manual_attendance';
       
       if (table) {
-          const { error } = await supabaseClient.from(table).update({ status: statusStr, approved_at: getTodayStr() }).eq('id', id);
+          let nextStatus = statusStr;
+          if (table === 'overtime' && action === 'approve') {
+             const { data: otRec } = await supabaseClient.from(table).select('user_id, status').eq('id', id).single();
+             if (otRec) {
+                const { data: empRec } = await supabaseClient.from('users').select('approver_2_id, approver_3_id').eq('id', otRec.user_id).single();
+                if (empRec) {
+                   if (otRec.status === 'Pending') {
+                      if (empRec.approver_2_id) nextStatus = 'Pending Dept Head';
+                      else if (empRec.approver_3_id) nextStatus = 'Pending Div Head';
+                   } else if (otRec.status === 'Pending Dept Head') {
+                      if (empRec.approver_3_id) nextStatus = 'Pending Div Head';
+                   }
+                }
+             }
+          }
+          const { error } = await supabaseClient.from(table).update({ status: nextStatus, approved_at: getTodayStr() }).eq('id', id);
           if (error) throw error;
           await logActivity(approverId, `Approval ${type}`, `Melakukan ${action} pada pengajuan ${id}`);
           result = true;
@@ -3231,8 +3270,27 @@ async function gasRun(fnName, args, onSuccess, onError) {
       else if(type === 'manual') table = 'manual_attendance';
       
       if (table && Array.isArray(ids) && ids.length > 0) {
-          const { error } = await supabaseClient.from(table).update({ status: statusStr, approved_at: getTodayStr() }).in('id', ids);
-          if (error) throw error;
+          if (table === 'overtime' && action === 'approve') {
+             for (const id of ids) {
+                let nextStatus = 'Approved';
+                const { data: otRec } = await supabaseClient.from(table).select('user_id, status').eq('id', id).single();
+                if (otRec) {
+                   const { data: empRec } = await supabaseClient.from('users').select('approver_2_id, approver_3_id').eq('id', otRec.user_id).single();
+                   if (empRec) {
+                      if (otRec.status === 'Pending') {
+                         if (empRec.approver_2_id) nextStatus = 'Pending Dept Head';
+                         else if (empRec.approver_3_id) nextStatus = 'Pending Div Head';
+                      } else if (otRec.status === 'Pending Dept Head') {
+                         if (empRec.approver_3_id) nextStatus = 'Pending Div Head';
+                      }
+                   }
+                }
+                await supabaseClient.from(table).update({ status: nextStatus, approved_at: getTodayStr() }).eq('id', id);
+             }
+          } else {
+             const { error } = await supabaseClient.from(table).update({ status: statusStr, approved_at: getTodayStr() }).in('id', ids);
+             if (error) throw error;
+          }
           await logActivity(approverId, `Bulk Approval ${type}`, `Melakukan ${action} pada ${ids.length} pengajuan`);
           result = true;
       } else {
@@ -5320,7 +5378,7 @@ function renderOvertimeHistory(data) {
   const tbody = document.getElementById('overtime-history-body');
   
   const config = {
-     search: showName ? (item, q) => (item.userName || '').toLowerCase().includes(q) || (item.activity || '').toLowerCase().includes(q) : (item, q) => (item.activity || '').toLowerCase().includes(q),
+     search: showName ? (item, q) => (item.userName || item.name || item.employeeName || '').toLowerCase().includes(q) || (item.activity || '').toLowerCase().includes(q) : (item, q) => (item.activity || '').toLowerCase().includes(q),
      date: (item) => item.date
   };
   
@@ -5339,7 +5397,7 @@ function renderOvertimeHistory(data) {
     const statusBadge = ot.status === 'Approved' ? '<span class="badge badge-success badge-dot">Disetujui</span>' :
                         ot.status === 'Rejected' ? '<span class="badge badge-danger badge-dot">Ditolak</span>' :
                         '<span class="badge badge-warning badge-dot">Pending</span>';
-    const nameTd = showName ? `<td><strong>${ot.userName || '?'}</strong></td>` : '';
+    const nameTd = showName ? `<td><strong>${ot.userName || ot.name || '?'}</strong></td>` : '';
     return `<tr>
       ${nameTd}
       <td>${formatDate(ot.date)}</td>
@@ -6904,8 +6962,8 @@ function renderEditHistory(data) {
   const tbody = document.getElementById('edit-history-body');
 
   const config = {
-     search: showName ? (item, q) => (item.userName || '').toLowerCase().includes(q) || (item.reason || '').toLowerCase().includes(q) : (item, q) => (item.reason || '').toLowerCase().includes(q),
-     date: (item) => item.attendanceDate
+     search: showName ? (item, q) => (item.userName || item.name || '').toLowerCase().includes(q) || (item.reason || '').toLowerCase().includes(q) : (item, q) => (item.reason || '').toLowerCase().includes(q),
+     date: (item) => item.attendanceDate || item.requestDate || item.date
   };
   
   renderTableControls('edit-history-body', config, () => renderEditHistory(data));
@@ -6923,13 +6981,13 @@ function renderEditHistory(data) {
     const statusBadge = er.status === 'Approved' ? '<span class="badge badge-success badge-dot">Disetujui</span>' :
                         er.status === 'Rejected' ? '<span class="badge badge-danger badge-dot">Ditolak</span>' :
                         '<span class="badge badge-warning badge-dot">Pending</span>';
-    const nameTd = showName ? `<td><strong>${er.userName || '?'}</strong></td>` : '';
+    const nameTd = showName ? `<td><strong>${er.userName || er.name || '?'}</strong></td>` : '';
     return `<tr>
       ${nameTd}
-      <td>${formatDate(er.attendanceDate)}</td>
-      <td>${formatDate(er.submittedAt)}</td>
-      <td style="font-size:12px;">${er.originalIn || '--:--'} / ${er.originalOut || '--:--'}</td>
-      <td style="font-size:12px;font-weight:700;">${er.requestedIn || '--:--'} / ${er.requestedOut || '--:--'}</td>
+      <td>${formatDate(er.attendanceDate || er.requestDate || er.date)}</td>
+      <td>${formatDate(er.submittedAt || er.requestDate || er.date)}</td>
+      <td style="font-size:12px;">${er.originalIn || er.originalClockIn || '--:--'} / ${er.originalOut || er.originalClockOut || '--:--'}</td>
+      <td style="font-size:12px;font-weight:700;">${er.requestedIn || er.requestedClockIn || '--:--'} / ${er.requestedOut || er.requestedClockOut || '--:--'}</td>
       <td style="max-width:180px;font-size:12px;">${truncate(er.reason, 60)}</td>
       <td>${statusBadge}</td>
       <td style="font-size:12px;">${er.note || ' '}</td>
@@ -7122,7 +7180,7 @@ function renderLeaveHistory(data) {
   const showName = (isSupervisorRole(user.role) || isAdminLevel(user.role));
 
   const config = {
-     search: showName ? (item, q) => (item.employeeName || '').toLowerCase().includes(q) || (item.reason || '').toLowerCase().includes(q) || (item.type || '').toLowerCase().includes(q) : (item, q) => (item.reason || '').toLowerCase().includes(q) || (item.type || '').toLowerCase().includes(q),
+     search: showName ? (item, q) => (item.employeeName || item.userName || item.name || '').toLowerCase().includes(q) || (item.reason || '').toLowerCase().includes(q) || (item.type || '').toLowerCase().includes(q) : (item, q) => (item.reason || '').toLowerCase().includes(q) || (item.type || '').toLowerCase().includes(q),
      date: (item) => item.startDate
   };
   
