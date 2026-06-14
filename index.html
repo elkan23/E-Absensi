@@ -492,6 +492,10 @@
     }
     .tab-btn.active { background: var(--card); color: var(--primary); box-shadow: var(--shadow); }
     .tab-btn:hover:not(.active) { color: var(--text-primary); background: rgba(255,255,255,0.5); }
+    
+    .tab-btn.tab-approval { background: var(--primary); color: white; border: 2px solid transparent; }
+    .tab-btn.tab-approval.active { background: var(--card); color: var(--primary); border: 2px solid var(--primary); font-weight: 700; box-shadow: var(--shadow); }
+    .tab-btn.tab-approval:hover:not(.active) { background: #0056b3; color: white; }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
@@ -1472,19 +1476,19 @@
         </div>
 
         <div class="tab-bar approval-tab-bar">
-          <button id="tab-btn-approval-lembur" class="tab-btn active" onclick="switchTab('approval', 'lembur', this)">
+          <button id="tab-btn-approval-lembur" class="tab-btn tab-approval active" onclick="switchTab('approval', 'lembur', this)">
             ⏱️ Lembur <span id="approval-lembur-count" class="badge badge-warning" style="margin-left:4px;">0</span>
           </button>
-          <button id="tab-btn-approval-edit" class="tab-btn" onclick="switchTab('approval', 'edit', this)">
+          <button id="tab-btn-approval-edit" class="tab-btn tab-approval" onclick="switchTab('approval', 'edit', this)">
             📝 Koreksi Absen <span id="approval-edit-count" class="badge badge-warning" style="margin-left:4px;">0</span>
           </button>
-          <button id="tab-btn-approval-leave" class="tab-btn" onclick="switchTab('approval', 'leave', this)">
+          <button id="tab-btn-approval-leave" class="tab-btn tab-approval" onclick="switchTab('approval', 'leave', this)">
             🌴 Cuti & Izin <span id="approval-leave-count" class="badge badge-warning" style="margin-left:4px;">0</span>
           </button>
-          <button id="tab-btn-approval-manual" class="tab-btn" onclick="switchTab('approval', 'manual', this)">
+          <button id="tab-btn-approval-manual" class="tab-btn tab-approval" onclick="switchTab('approval', 'manual', this)">
             📋 Absen Manual <span id="approval-manual-count" class="badge badge-warning" style="margin-left:4px;">0</span>
           </button>
-          <button id="tab-btn-reset-pwd" class="tab-btn" style="display:none;" onclick="switchTab('approval', 'pwd', this)">
+          <button id="tab-btn-reset-pwd" class="tab-btn tab-approval" style="display:none;" onclick="switchTab('approval', 'pwd', this)">
             🔑 Lupa Password <span id="approval-pwd-count" class="badge badge-warning" style="margin-left:4px;">0</span>
           </button>
         </div>
@@ -2876,6 +2880,7 @@ const GAS_FN_MAP = {
   'getMyLeaves': 'getMyLeaves',
   'approveLeave': 'processApproval',
   'rejectLeave': 'processApproval',
+  'processBulkApproval': 'processBulkApproval',
   'getApprovalHierarchy': 'getApprovalHierarchy',
   'saveApprovalHierarchy': 'saveApprovalHierarchy',
   'getAllEmployees': 'getEmployeeList',
@@ -3018,6 +3023,12 @@ async function gasRun(fnName, args, onSuccess, onError) {
 
       const { data: usersData } = await usersQ;
       const teamIds = usersData ? usersData.map(u => u.id) : [];
+      
+      let otherTeamIds = teamIds;
+      if (userRole === 'Dept Head' || userRole === 'Div Head') {
+          const { data: directSubs } = await supabaseClient.from('users').select('id').eq('supervisor_id', uId);
+          otherTeamIds = directSubs ? directSubs.map(u => u.id) : [];
+      }
 
       // 3. Fetch user names map
       const { data: usersList } = await supabaseClient.from('users').select('id, name, position, department');
@@ -3037,9 +3048,11 @@ async function gasRun(fnName, args, onSuccess, onError) {
           date: d.date, startTime: d.start_time, endTime: d.end_time, totalHours: d.total_hours,
           activity: d.activity, status: d.status, approvedAt: d.approved_at, type: 'overtime'
         }));
-
+      }
+      
+      if (otherTeamIds.length > 0) {
         // Fetch pending leave
-        const { data: lvRes } = await supabaseClient.from('leave').select('*').eq('status', 'Pending').in('user_id', teamIds);
+        const { data: lvRes } = await supabaseClient.from('leave').select('*').eq('status', 'Pending').in('user_id', otherTeamIds);
         const lvData = lvRes || [];
         lv = lvData.map(d => ({
           id: d.id, userId: d.user_id,
@@ -3051,7 +3064,7 @@ async function gasRun(fnName, args, onSuccess, onError) {
         }));
 
         // Fetch pending edit requests (koreksi absen)
-        const { data: erRes } = await supabaseClient.from('edit_requests').select('*').eq('status', 'Pending').in('user_id', teamIds);
+        const { data: erRes } = await supabaseClient.from('edit_requests').select('*').eq('status', 'Pending').in('user_id', otherTeamIds);
         const erData = erRes || [];
         er = erData.map(d => ({
           id: d.id, userId: d.user_id, name: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
@@ -3062,7 +3075,7 @@ async function gasRun(fnName, args, onSuccess, onError) {
         }));
 
         // Fetch pending manual attendance (absen manual)
-        const { data: mnRes } = await supabaseClient.from('manual_attendance').select('*').eq('status', 'Pending').in('user_id', teamIds);
+        const { data: mnRes } = await supabaseClient.from('manual_attendance').select('*').eq('status', 'Pending').in('user_id', otherTeamIds);
         const mnData = mnRes || [];
         mn = mnData.map(d => ({
           id: d.id, userId: d.user_id, name: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
@@ -3193,18 +3206,37 @@ async function gasRun(fnName, args, onSuccess, onError) {
       const statusStr = action === 'approve' ? 'Approved' : 'Rejected';
       
       let table = '';
-      if(type === 'lembur') table = 'overtime';
-      else if(type === 'edit') table = 'edit_requests';
+      if(type === 'lembur' || type === 'overtime') table = 'overtime';
+      else if(type === 'edit' || type === 'editrequest') table = 'edit_requests';
       else if(type === 'leave') table = 'leave';
       else if(type === 'manual') table = 'manual_attendance';
       
       if (table) {
-          const { error } = await supabaseClient.from(table).update({ status: statusStr }).eq('id', id);
+          const { error } = await supabaseClient.from(table).update({ status: statusStr, approved_at: getTodayStr() }).eq('id', id);
           if (error) throw error;
           await logActivity(approverId, `Approval ${type}`, `Melakukan ${action} pada pengajuan ${id}`);
           result = true;
       } else {
           throw new Error('Tipe persetujuan tidak valid');
+      }
+    }
+    else if (fnName === 'processBulkApproval') {
+      const [type, ids, action, approverId] = args;
+      const statusStr = action === 'approve' ? 'Approved' : 'Rejected';
+      
+      let table = '';
+      if(type === 'lembur' || type === 'overtime') table = 'overtime';
+      else if(type === 'edit' || type === 'editrequest') table = 'edit_requests';
+      else if(type === 'leave') table = 'leave';
+      else if(type === 'manual') table = 'manual_attendance';
+      
+      if (table && Array.isArray(ids) && ids.length > 0) {
+          const { error } = await supabaseClient.from(table).update({ status: statusStr, approved_at: getTodayStr() }).in('id', ids);
+          if (error) throw error;
+          await logActivity(approverId, `Bulk Approval ${type}`, `Melakukan ${action} pada ${ids.length} pengajuan`);
+          result = true;
+      } else {
+          throw new Error('Tipe persetujuan atau list ID tidak valid');
       }
     }
     else if (fnName === 'submitLeave') {
@@ -5068,19 +5100,35 @@ function loadAdminDashboard() {
       gasRun('getPendingApprovals', [APP_STATE.user.id, APP_STATE.user.role],
         function(pd) {
           const list = document.getElementById('admin-pending-list');
-          const allPending = [...(pd.overtime || []), ...(pd.editRequests || [])].slice(0, 5);
+          const allPending = [...(pd.overtime || []), ...(pd.editRequests || []), ...(pd.leave || []), ...(pd.manual || [])].slice(0, 5);
           if (allPending.length === 0) {
             list.innerHTML = `<div class="empty-state" style="padding:24px;"><div class="empty-state-icon" style="font-size:32px;">📭</div><div class="empty-state-text">Tidak ada pending</div></div>`;
             return;
           }
           list.innerHTML = allPending.map(item => {
             const isOT = item.type === 'overtime';
+            const isEdit = item.type === 'editRequest';
+            const isManual = item.manualType === 'manualAttendance';
+            
+            let label = '';
+            let dateStr = '';
+            let tabType = 'lembur';
+            
+            if (isOT) {
+               label = '⏱️ Lembur'; dateStr = formatDateLong(item.date); tabType = 'lembur';
+            } else if (isEdit) {
+               label = '📝 Koreksi'; dateStr = formatDateLong(item.attendanceDate || item.requestDate); tabType = 'edit';
+            } else if (isManual) {
+               label = '📋 Absen Manual'; dateStr = formatDateLong(item.date || item.attendanceDate); tabType = 'manual';
+            } else {
+               label = '🌴 Cuti/Izin'; dateStr = formatDateLong(item.startDate); tabType = 'leave';
+            }
             return `<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;">
               <div>
                 <div style="font-weight:600;font-size:13px;">${item.name || item.userName || item.employeeName || 'Tanpa Nama'}</div>
-                <div style="font-size:11px;color:var(--text-secondary);">${isOT ? '⏱️ Lembur' : '📝 Koreksi'} - ${formatDateLong(isOT ? item.date : item.attendanceDate)}</div>
+                <div style="font-size:11px;color:var(--text-secondary);">${label} - ${dateStr}</div>
               </div>
-              <button class="btn btn-primary btn-sm" onclick="goToApproval('${isOT ? 'lembur' : 'edit'}')">Lihat</button>
+              <button class="btn btn-primary btn-sm" onclick="goToApproval('${tabType}')">Lihat</button>
             </div>`;
           }).join('');
         }, null
