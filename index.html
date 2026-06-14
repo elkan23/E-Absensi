@@ -7070,13 +7070,15 @@ function processExcelUpload(event, defaultRole) {
            let h = headers[j] || '';
            let val = row[j] != null ? String(row[j]).trim() : '';
            
-           if(h.includes('nik atasan') || h.includes('id atasan') || h.includes('username atasan')) emp.supervisor_nik = val;
-           else if(h.includes('username')) emp.username = val;
+           if(h.includes('nik atasan') || h.includes('id atasan') || (h.includes('username atasan') && !h.includes('dept') && !h.includes('div'))) emp.supervisor_id = val;
+           else if(h.includes('dept head') || h.includes('approver 2')) emp.approver_2_id = val;
+           else if(h.includes('div head') || h.includes('approver 3')) emp.approver_3_id = val;
+           else if(h === 'username' || h === 'username / id login' || h === 'id login') emp.username = val;
            else if(h.includes('password')) emp.password = val;
            else if(h.includes('nama')) emp.name = val;
            else if(h.includes('role')) emp.role = val;
            else if(h.includes('email')) emp.email = val;
-           else if((h.includes('no reg') || h.includes('nik')) && !h.includes('atasan')) emp.no_reg = val;
+           else if((h.includes('no reg') || h.includes('nik')) && !h.includes('atasan') && !h.includes('head')) emp.no_reg = val;
            else if(h.includes('departemen')) emp.department = val;
            else if(h.includes('jabatan')) emp.position = val;
            else if(h.includes('no hp')) emp.phone = val;
