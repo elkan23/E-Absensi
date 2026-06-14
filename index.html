@@ -3531,7 +3531,7 @@ async function gasRun(fnName, args, onSuccess, onError) {
 
       if (teamIds.length > 0) {
         const { data: attRes } = await supabaseClient.from('attendance')
-          .select('date, clock_in_time, user_id')
+          .select('date, clock_in_time, clock_out_time, work_hours, user_id')
           .gte('date', past7Str)
           .in('user_id', teamIds);
         attAll = attRes || [];
@@ -3571,12 +3571,30 @@ async function gasRun(fnName, args, onSuccess, onError) {
         teamOtTotal = otRes ? otRes.reduce((sum, item) => sum + (parseFloat(item.total_hours) || 0), 0) : 0;
       }
 
+      // 7. Calculate Employees Today Status
+      let employeesToday = [];
+      if (usersData && usersData.length > 0) {
+        employeesToday = usersData.map(u => {
+          const a = attAll ? attAll.find(att => att.user_id === u.id && att.date === today) : null;
+          return {
+            id: u.id,
+            name: u.name,
+            dept: u.department || '-',
+            clockIn: a ? a.clock_in_time : '',
+            clockOut: a ? a.clock_out_time : '',
+            workHours: a ? a.work_hours : 0,
+            status: a && a.clock_in_time ? 'Hadir' : 'Belum Hadir'
+          };
+        });
+      }
+
       result = {
           hadirToday: hadir,
           totalKaryawan: total,
           pendingTotal: 0,
           totalLembur: teamOtTotal,
-          last7Chart: last7Days
+          last7Chart: last7Days,
+          employeesToday: employeesToday
       };
     }
     else if (fnName === 'getSupervisorDashboardData') {
@@ -3837,7 +3855,7 @@ async function gasRun(fnName, args, onSuccess, onError) {
 
       if (teamIds.length > 0) {
         const { data: attRes } = await supabaseClient.from('attendance')
-          .select('date, clock_in_time, user_id')
+          .select('date, clock_in_time, clock_out_time, work_hours, user_id')
           .gte('date', past7Str)
           .in('user_id', teamIds);
         attAll = attRes || [];
@@ -3877,12 +3895,30 @@ async function gasRun(fnName, args, onSuccess, onError) {
         teamOtTotal = otRes ? otRes.reduce((sum, item) => sum + (parseFloat(item.total_hours) || 0), 0) : 0;
       }
 
+      // 7. Calculate Employees Today Status
+      let employeesToday = [];
+      if (usersData && usersData.length > 0) {
+        employeesToday = usersData.map(u => {
+          const a = attAll ? attAll.find(att => att.user_id === u.id && att.date === today) : null;
+          return {
+            id: u.id,
+            name: u.name,
+            dept: u.department || '-',
+            clockIn: a ? a.clock_in_time : '',
+            clockOut: a ? a.clock_out_time : '',
+            workHours: a ? a.work_hours : 0,
+            status: a && a.clock_in_time ? 'Hadir' : 'Belum Hadir'
+          };
+        });
+      }
+
       result = {
           hadirToday: hadir,
           totalKaryawan: total,
           pendingTotal: 0,
           totalLembur: teamOtTotal,
-          last7Chart: last7Days
+          last7Chart: last7Days,
+          employeesToday: employeesToday
       };
     }
     else if (fnName === 'getReportByDateRange') {
