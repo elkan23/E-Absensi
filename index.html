@@ -4921,7 +4921,7 @@ function loadSupervisorDashboard() {
       const allPending = [...(data.overtime || []), ...(data.editRequests || []), ...(data.leave || []), ...(data.manual || [])];
       document.getElementById('sv-pending-count').textContent = allPending.length;
       if (allPending.length === 0) {
-        list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada yang menunggu persetujuan</div></div>';
+        list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada yang menunggu persetujuan</div></div>`;
         return;
       }
       list.innerHTML = allPending.map(item => {
