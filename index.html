@@ -1438,7 +1438,7 @@
         </div>
 
         <!-- RIWAYAT LEMBUR -->
-        <div id="sv-ot-summary-card" class="card" style="display:none; margin-bottom:16px;">
+        <div id="sv-ot-summary-card" class="card" style="margin-bottom:16px;">
           <div class="card-title"><span>⏱️</span> Ringkasan Lembur (Sesuai Filter)</div>
           <div style="display:flex; align-items:center; justify-content:space-between; padding:16px; background:var(--bg); border-radius:8px;">
             <div style="font-size:14px; color:var(--text-secondary);">Total Waktu Lembur dari data yang ditampilkan:</div>
@@ -2080,15 +2080,16 @@
             <div class="page-subtitle">Ajukan perizinan tidak masuk kerja atau cuti tahunan Anda di sini.</div>
           </div>
         </div>
+        
+        <div id="leave-balance-container" style="margin-bottom:16px; padding:12px; background:rgba(147, 51, 234, 0.08); border-left:4px solid rgb(147, 51, 234); border-radius:6px; display:none;">
+          <div style="font-size:11px; color:var(--text-secondary); font-weight:600; text-transform:uppercase;">Sisa Saldo Cuti Tahunan Anda</div>
+          <div style="font-size:22px; font-weight:800; color:rgb(147, 51, 234); margin-top:2px;" id="leave-balance-display">-- Hari</div>
+        </div>
 
         <div style="display:grid;gap:20px;margin-bottom:24px;" class="admin-two-col">
           <!-- FORM -->
           <div class="card">
             <div class="card-title"><span>📌</span> Form Pengajuan</div>
-            <div id="leave-balance-container" style="margin-bottom:16px; padding:12px; background:rgba(147, 51, 234, 0.08); border-left:4px solid rgb(147, 51, 234); border-radius:6px; display:none;">
-              <div style="font-size:11px; color:var(--text-secondary); font-weight:600; text-transform:uppercase;">Sisa Saldo Cuti Tahunan Anda</div>
-              <div style="font-size:22px; font-weight:800; color:rgb(147, 51, 234); margin-top:2px;" id="leave-balance-display">-- Hari</div>
-            </div>
             <div class="form-group">
               <label class="form-label">Jenis Izin/Cuti</label>
               <select id="leave-type" class="form-control">
@@ -2130,6 +2131,13 @@
         </div>
 
         <!-- RIWAYAT -->
+        <div id="sv-leave-summary-card" class="card" style="margin-bottom:16px;">
+          <div class="card-title"><span>🏖️</span> Ringkasan Cuti (Sesuai Filter)</div>
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:16px; background:var(--bg); border-radius:8px;">
+            <div style="font-size:14px; color:var(--text-secondary);">Sisa Saldo Cuti Tahunan:</div>
+            <div style="font-size:24px; font-weight:800; color:var(--primary);" id="sv-leave-summary-total">-- Hari</div>
+          </div>
+        </div>
         <div class="card">
           <div class="card-title"><span>📌</span> Riwayat Pengajuan</div>
           <div class="table-wrapper">
@@ -3239,11 +3247,23 @@ async function gasRun(fnName, args, onSuccess, onError) {
       
       const { data: att } = await supabaseClient.from('attendance').select('*').eq('user_id', uId).like('date', `${monthStr}%`);
       const { data: ots } = await supabaseClient.from('overtime').select('*').eq('user_id', uId).like('date', `${monthStr}%`).eq('status', 'Approved');
+      const { data: leaves } = await supabaseClient.from('leave').select('*').eq('user_id', uId).eq('status', 'Approved').eq('type', 'Cuti Tahunan');
       
       const hadir = att ? att.length : 0;
       const lembur = ots ? ots.reduce((sum, o) => sum + parseFloat(o.total_hours || 0), 0) : 0;
       
-      result = { hadir, telat: 0, cuti: 0, lembur };
+      let approvedDays = 0;
+      if (leaves) {
+        leaves.forEach(l => {
+          const start = new Date(l.start_date);
+          const end = new Date(l.end_date);
+          const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+          approvedDays += diff;
+        });
+      }
+      const leaveBalance = 12 - approvedDays;
+      
+      result = { hadir, telat: 0, cuti: 0, lembur, leaveBalance };
     }
     else if (fnName === 'submitOvertime') {
       const [uId, date, start, end, total, act] = args;
@@ -3457,6 +3477,13 @@ async function gasRun(fnName, args, onSuccess, onError) {
         updateData.password = emp.password;
       }
 
+      if (updateData.no_reg) {
+         const { data: existNoReg } = await supabaseClient.from('users').select('id').eq('no_reg', updateData.no_reg).neq('id', newId).maybeSingle();
+         if (existNoReg) {
+            return { success: false, message: `No. Registrasi / NIK '${updateData.no_reg}' sudah terdaftar untuk karyawan lain.` };
+         }
+      }
+
       const { error } = await supabaseClient.from('users').upsert(updateData);
       if (error) throw error;
       await logActivity(APP_STATE.user.id, 'Simpan Karyawan', `Menyimpan data karyawan ${emp.name}`);
@@ -3494,6 +3521,13 @@ async function gasRun(fnName, args, onSuccess, onError) {
 
       if (mentor.password && mentor.password.trim() !== '') {
         updateData.password = mentor.password;
+      }
+
+      if (updateData.no_reg) {
+         const { data: existNoReg } = await supabaseClient.from('users').select('id').eq('no_reg', updateData.no_reg).neq('id', newId).maybeSingle();
+         if (existNoReg) {
+            return { success: false, message: `No. Registrasi / NIK '${updateData.no_reg}' sudah terdaftar untuk karyawan lain.` };
+         }
       }
 
       const { error } = await supabaseClient.from('users').upsert(updateData);
@@ -3675,26 +3709,50 @@ async function gasRun(fnName, args, onSuccess, onError) {
       
       const rows = [];
       const daysStr = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-      const { data: usersD } = await supabaseClient.from('users').select('id, name').in('id', ids);
+      const { data: usersD } = await supabaseClient.from('users').select('*').in('id', ids);
       const uMap = {}; 
-      if (usersD) usersD.forEach(u => { uMap[u.id] = u.name; });
+      if (usersD) usersD.forEach(u => { uMap[u.id] = u.name || u.username || '-'; });
+
+      const getDaySafe = (dStr) => {
+        if (!dStr) return '';
+        const parts = dStr.split('-');
+        if (parts.length === 3) {
+          const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+          const idx = d.getDay();
+          return isNaN(idx) ? '' : daysStr[idx];
+        }
+        const d = new Date(dStr);
+        const idx = d.getDay();
+        return isNaN(idx) ? '' : daysStr[idx];
+      };
 
       if (att) {
         for (const a of att) {
           const ot = ots ? ots.find(o => o.user_id === a.user_id && o.date === a.date) : null;
           rows.push({
-            userId: a.user_id, userName: uMap[a.user_id] || '-', day: daysStr[new Date(a.date).getDay()] || '',
+            userId: a.user_id, userName: uMap[a.user_id] || '-', day: getDaySafe(a.date),
             date: a.date, clockIn: a.clock_in_time, clockOut: a.clock_out_time,
             locIn: a.clock_in_location, locOut: a.clock_out_location, workHours: a.work_hours, status: a.status,
-            otHours: ot ? ot.total_hours : 0, otActivity: ot ? ot.activity : '', otStatus: ot ? ot.status : '', leaveType: ''
+            otHours: ot ? parseFloat(ot.total_hours || 0) : 0, otActivity: ot ? ot.activity : '', otStatus: ot ? ot.status : '', leaveType: ''
           });
+        }
+      }
+      if (ots) {
+        for (const ot of ots) {
+          if (!rows.find(r => r.userId === ot.user_id && r.date === ot.date)) {
+            rows.push({
+               userId: ot.user_id, userName: uMap[ot.user_id] || '-', day: getDaySafe(ot.date),
+               date: ot.date, clockIn: '', clockOut: '', locIn: '', locOut: '', workHours: 0, 
+               status: 'Lembur', otHours: parseFloat(ot.total_hours || 0), otActivity: ot.activity, otStatus: ot.status, leaveType: '' 
+            });
+          }
         }
       }
       if (lvs) {
         for (const lv of lvs) {
           if (!rows.find(r => r.userId === lv.user_id && r.date === lv.start_date)) {
             rows.push({ 
-               userId: lv.user_id, userName: uMap[lv.user_id] || '-', day: daysStr[new Date(lv.start_date).getDay()] || '',
+               userId: lv.user_id, userName: uMap[lv.user_id] || '-', day: getDaySafe(lv.start_date),
                date: lv.start_date, clockIn: '', clockOut: '', locIn: '', locOut: '', workHours: 0, 
                status: lv.status, otHours: 0, otActivity: '', otStatus: '', leaveType: lv.type 
             });
@@ -4165,7 +4223,7 @@ function buildNav(role) {
   const nav = document.getElementById('sidebar-nav');
   let cleanRole = role ? role.trim() : '';
   let menuRole = cleanRole;
-  if (cleanRole && (cleanRole.indexOf('Mentor') !== -1 || cleanRole === 'Dept Head' || cleanRole === 'Div Head')) menuRole = 'Mentor';
+  if (cleanRole && (cleanRole.indexOf('Mentor') !== -1 || cleanRole === 'Dept Head' || cleanRole === 'Div Head' || cleanRole === 'User')) menuRole = 'Mentor';
   if (cleanRole === 'Manager' || cleanRole === 'General Manager' || cleanRole === 'Direktur' || cleanRole === 'Direktur Utama') menuRole = 'Supervisor';
 
   let items = NAV_MENU[menuRole] || NAV_MENU.Karyawan;
@@ -4178,13 +4236,57 @@ function buildNav(role) {
     });
   }
   
-  if (APP_STATE.user && APP_STATE.user.accessibleMenus && APP_STATE.user.accessibleMenus.trim() !== '') {
-    const allowed = APP_STATE.user.accessibleMenus.split(',').map(m => m.trim());
-    // Always show these regardless of accessibleMenus
-    const alwaysShow = ['view-activity-log', 'view-change-password'];
-    items = items.filter(item => allowed.includes(item.id) || 
-      alwaysShow.includes(item.id) ||
-      item.id.startsWith('view-dashboard'));
+  if (APP_STATE.user && APP_STATE.user.accessibleMenus) {
+    let allowedStr = '';
+    if (Array.isArray(APP_STATE.user.accessibleMenus)) {
+      allowedStr = APP_STATE.user.accessibleMenus.join(',');
+    } else if (typeof APP_STATE.user.accessibleMenus === 'string') {
+      allowedStr = APP_STATE.user.accessibleMenus.trim();
+    }
+    
+    if (allowedStr !== '' && allowedStr !== 'view-dashboard,view-attendance' && allowedStr !== 'view-dashboard,view-attendance,view-activity-log') {
+      const allowed = allowedStr.split(',').map(m => m.trim());
+      const alwaysShow = ['view-activity-log', 'view-change-password'];
+      
+      let newItems = [];
+      const fallbackLabels = {
+        'view-dashboard-karyawan': { id: 'view-dashboard-karyawan', label: 'Dashboard Karyawan', icon: '🏠' },
+        'view-dashboard-supervisor': { id: 'view-dashboard-supervisor', label: 'Dashboard Supervisor', icon: '🏠' },
+        'view-dashboard-admin': { id: 'view-dashboard-admin', label: 'Dashboard Admin', icon: '🏠' },
+        'view-overtime': { id: 'view-overtime', label: 'Riwayat Lembur', icon: '⏱️' },
+        'view-edit-attendance': { id: 'view-edit-attendance', label: 'Koreksi Absen', icon: '📝' },
+        'view-leave': { id: 'view-leave', label: 'Cuti & Izin', icon: '🏖️' },
+        'view-manual': { id: 'view-manual', label: 'Absen Manual', icon: '📋' },
+        'view-approval': { id: 'view-approval', label: 'Approval', icon: '✅' },
+        'view-report': { id: 'view-report', label: 'Laporan', icon: '📊' },
+        'view-employees': { id: 'view-employees', label: 'Data Karyawan', icon: '👥' },
+        'view-settings': { id: 'view-settings', label: 'Pengaturan', icon: '⚙️' },
+        'view-activity-log': { id: 'view-activity-log', label: 'Log Aktivitas', icon: '📑' }
+      };
+
+      allowed.forEach(id => {
+        if (!id) return;
+        let found = items.find(i => i.id === id);
+        if (found) {
+          newItems.push(found);
+        } else if (fallbackLabels[id]) {
+          newItems.push(fallbackLabels[id]);
+        }
+      });
+      
+      alwaysShow.forEach(id => {
+        if (!newItems.find(i => i.id === id) && fallbackLabels[id]) {
+          newItems.push(fallbackLabels[id]);
+        }
+      });
+      
+      if (!newItems.some(i => i.id.startsWith('view-dashboard'))) {
+        let dash = items.find(i => i.id.startsWith('view-dashboard'));
+        if (dash) newItems.unshift(dash);
+      }
+      
+      items = newItems;
+    }
   }
   
   let menuHtml = items.map(item =>
@@ -5330,6 +5432,13 @@ function renderOvertimeHistory(data) {
   renderTableControls('overtime-history-body', config, () => renderOvertimeHistory(data));
   const filtered = filterDataByControls(data, 'overtime-history-body', config);
 
+  const summaryCard = document.getElementById('sv-ot-summary-card');
+  if (summaryCard) {
+    summaryCard.style.display = 'block';
+    const totalH = filtered.filter(o => o.status === 'Approved').reduce((s, o) => s + (parseFloat(o.totalHours) || 0), 0);
+    document.getElementById('sv-ot-summary-total').textContent = totalH.toFixed(1) + ' Jam';
+  }
+
   if (!filtered || filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Belum ada pengajuan lembur</div></div></td></tr>`;
     renderPaginationFooter('overtime-history-body', 0, 1, {page:1, size:10}, () => {});
@@ -5749,7 +5858,7 @@ function loadReportForUser(userId, startDate, endDate) {
 function renderReportSummary(rows) {
   const workDays = rows.filter(r => !r.isWeekend && !r.isHoliday).length;
   const hadir = rows.filter(r => r.status === 'Hadir').length;
-  const lemburJam = rows.reduce((s, r) => s + (r.otHours || 0), 0);
+  const lemburJam = rows.reduce((s, r) => s + parseFloat(r.otHours || 0), 0);
   const workHoursArr = rows.filter(r => r.clockIn && r.clockOut).map(r => calcWorkHoursDecimal(r.clockIn, r.clockOut));
   const avgHours = workHoursArr.length > 0 ? (workHoursArr.reduce((s,h) => s+h, 0) / workHoursArr.length).toFixed(1) : 0;
 
@@ -6138,7 +6247,7 @@ function openEmployeeModal(empId) {
   roleSelect.onchange = function(e) {
     const selectedRole = e.target.value;
     let menuRole = selectedRole;
-    if (selectedRole && (selectedRole.indexOf('Mentor') !== -1 || selectedRole === 'Dept Head' || selectedRole === 'Div Head')) menuRole = 'Mentor';
+    if (selectedRole && (selectedRole.indexOf('Mentor') !== -1 || selectedRole === 'Dept Head' || selectedRole === 'Div Head' || selectedRole === 'User')) menuRole = 'Mentor';
     if (selectedRole === 'Manager' || selectedRole === 'General Manager' || selectedRole === 'Direktur' || selectedRole === 'Direktur Utama') menuRole = 'Supervisor';
 
     const defaultMenus = NAV_MENU[menuRole] ? NAV_MENU[menuRole].map(m => m.id) : [];
@@ -6226,10 +6335,16 @@ function openEmployeeModal(empId) {
       arr = emp.accessibleMenus.split(',').map(m => m.trim());
     }
     
-    if (arr.length > 0) {
+    const isDefaultObsolete = arr.length === 2 && arr.includes('view-dashboard') && arr.includes('view-attendance');
+    if (arr.length > 0 && !isDefaultObsolete) {
       checkboxes.forEach(cb => { cb.checked = arr.includes(cb.value); });
     } else {
-      const defaultMenus = NAV_MENU[emp.role || 'Karyawan'] ? NAV_MENU[emp.role || 'Karyawan'].map(m => m.id) : [];
+      let menuRole = emp.role || 'Karyawan';
+      let cleanRole = menuRole.trim();
+      if (cleanRole && (cleanRole.indexOf('Mentor') !== -1 || cleanRole === 'Dept Head' || cleanRole === 'Div Head' || cleanRole === 'User')) menuRole = 'Mentor';
+      if (cleanRole === 'Manager' || cleanRole === 'General Manager' || cleanRole === 'Direktur' || cleanRole === 'Direktur Utama') menuRole = 'Supervisor';
+      
+      const defaultMenus = NAV_MENU[menuRole] ? NAV_MENU[menuRole].map(m => m.id) : [];
       checkboxes.forEach(cb => { cb.checked = defaultMenus.includes(cb.value); });
     }
 
@@ -6984,6 +7099,16 @@ function loadLeaveView() {
   document.getElementById('leave-start').value = getTodayStr();
   document.getElementById('leave-end').value = getTodayStr();
 
+  // Always show leave balance for the logged-in user
+  const balanceContainer = document.getElementById('leave-balance-container');
+  if (balanceContainer) {
+    balanceContainer.style.display = 'block';
+    gasRun('getMyStats', [user.id], function(stats) {
+      const cnt = stats.leaveBalance !== undefined ? stats.leaveBalance : 12;
+      document.getElementById('leave-balance-display').textContent = cnt + ' Hari';
+    });
+  }
+
   if (isSupervisorRole(user.role) || isAdminLevel(user.role)) {
     // Hide Form Pengajuan
     const leaveFormCard = document.querySelector('#view-leave .card:first-child');
@@ -6991,7 +7116,6 @@ function loadLeaveView() {
     const gridContainer = document.querySelector('#view-leave > div[style*="grid"]');
     if (gridContainer) gridContainer.style.gridTemplateColumns = '1fr';
     document.getElementById('leave-history-name-th').style.display = '';
-    document.getElementById('leave-balance-container').style.display = 'none';
 
     gasRun('getTeamLeaves', [user.id, user.role],
       function(data) {
@@ -7006,12 +7130,6 @@ function loadLeaveView() {
     const gridContainer = document.querySelector('#view-leave > div[style*="grid"]');
     if (gridContainer) gridContainer.style.gridTemplateColumns = '1fr 1fr';
     document.getElementById('leave-history-name-th').style.display = 'none';
-    
-    document.getElementById('leave-balance-container').style.display = 'block';
-    gasRun('getMyStats', [user.id], function(stats) {
-      const cnt = stats.leaveBalance !== undefined ? stats.leaveBalance : 12;
-      document.getElementById('leave-balance-display').textContent = cnt + ' Hari';
-    });
 
     gasRun('getMyLeaves', [user.id],
       function(data) {
@@ -7037,9 +7155,20 @@ function loadManualView() {
   if (isSupervisorRole(user.role) || isAdminLevel(user.role)) {
     if (manualFormCard) manualFormCard.style.display = 'none';
     if (gridContainer) gridContainer.style.gridTemplateColumns = '1fr';
+    const nameTh = document.getElementById('manual-history-name-th');
+    if (nameTh) nameTh.style.display = '';
+
+    gasRun('getTeamManualAttendance', [user.id, user.role],
+      function(data) {
+        APP_STATE.manualHistory = data || [];
+        renderManualHistory(APP_STATE.manualHistory);
+      }, null
+    );
   } else {
     if (manualFormCard) manualFormCard.style.display = 'block';
     if (gridContainer) gridContainer.style.gridTemplateColumns = '1fr 1fr';
+    const nameTh = document.getElementById('manual-history-name-th');
+    if (nameTh) nameTh.style.display = 'none';
     
     gasRun('getMyManualAttendance', [user.id],
       function(data) {
@@ -7083,9 +7212,10 @@ function submitManual() {
 
 function renderManualHistory(data) {
   const tbody = document.getElementById('manual-history-body');
+  const showName = (isSupervisorRole(APP_STATE.user.role) || isAdminLevel(APP_STATE.user.role));
   
   const config = {
-     search: (item, q) => (item.reason || '').toLowerCase().includes(q) || (item.type || '').toLowerCase().includes(q),
+     search: showName ? (item, q) => (item.userName || item.name || '').toLowerCase().includes(q) || (item.reason || '').toLowerCase().includes(q) || (item.type || '').toLowerCase().includes(q) : (item, q) => (item.reason || '').toLowerCase().includes(q) || (item.type || '').toLowerCase().includes(q),
      date: (item) => item.date
   };
   
@@ -7093,7 +7223,8 @@ function renderManualHistory(data) {
   const filtered = filterDataByControls(data, 'manual-history-body', config);
 
   if (!filtered || filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Belum ada riwayat</div></div></td></tr>';
+    const colspan = showName ? "8" : "7";
+    tbody.innerHTML = `<tr><td colspan="${colspan}"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Belum ada riwayat</div></div></td></tr>`;
     renderPaginationFooter('manual-history-body', 0, 1, {page:1, size:10}, () => {});
     return;
   }
@@ -7104,7 +7235,10 @@ function renderManualHistory(data) {
     let badgeCls = 'badge-warning';
     if (r.status === 'Approved') badgeCls = 'badge-success';
     if (r.status === 'Rejected') badgeCls = 'badge-danger';
+    
+    const nameTd = showName ? `<td><strong>${r.userName || r.name || '?'}</strong></td>` : '';
     return `<tr>
+      ${nameTd}
       <td>${formatDateLong(r.date)}</td>
       <td>${r.clockIn || '-'}</td>
       <td>${r.clockOut || '-'}</td>
@@ -7166,6 +7300,18 @@ function renderLeaveHistory(data) {
   renderTableControls('leave-history-body', config, () => renderLeaveHistory(data));
   const filtered = filterDataByControls(data, 'leave-history-body', config);
 
+  const summaryCard = document.getElementById('sv-leave-summary-card');
+  if (summaryCard) {
+    if (showName && filtered && filtered.length > 0) {
+      document.getElementById('sv-leave-summary-total').textContent = (filtered[0].leaveBalance !== undefined ? filtered[0].leaveBalance : 12) + ' Hari';
+    } else if (!showName) {
+      const topDisplay = document.getElementById('leave-balance-display');
+      document.getElementById('sv-leave-summary-total').textContent = topDisplay ? topDisplay.textContent : '-- Hari';
+    } else {
+      document.getElementById('sv-leave-summary-total').textContent = '-- Hari';
+    }
+  }
+
   if (!filtered || filtered.length === 0) {
     const colspan = showName ? "8" : "7";
     tbody.innerHTML = `<tr><td colspan="${colspan}"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Belum ada riwayat pengajuan</div></div></td></tr>`;
@@ -7179,7 +7325,7 @@ function renderLeaveHistory(data) {
     const statusBadge = l.status === 'Approved' ? '<span class="badge badge-success badge-dot">Disetujui</span>' :
                         l.status === 'Rejected' ? '<span class="badge badge-danger badge-dot">Ditolak</span>' :
                         '<span class="badge badge-warning badge-dot">Pending</span>';
-    const nameCol = showName ? `<td><div style="font-weight:600;font-size:13px;">${l.employeeName || '-'}</div></td>` : '';
+    const nameCol = showName ? `<td><div style="font-weight:600;font-size:13px;">${l.employeeName || l.userName || l.name || '-'}</div><div style="font-size:11px;color:var(--text-secondary);">Sisa Cuti: ${l.leaveBalance !== undefined ? l.leaveBalance : 12} Hari</div></td>` : '';
     return `<tr>
       ${nameCol}
       <td>${formatDate(l.startDate)}</td>
