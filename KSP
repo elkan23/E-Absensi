@@ -486,13 +486,12 @@
       flex: 1; padding: 9px 16px;
       border-radius: 8px; border: none;
       font-size: 13px; font-weight: 600;
-      color: #ffffff;
-      background: var(--primary);
+      color: var(--text-secondary);
+      background: transparent;
       cursor: pointer; transition: var(--transition);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .tab-btn.active { box-shadow: 0 4px 12px rgba(0,0,0,0.2); transform: translateY(-2px); border: 2px solid #ffffff; }
-    .tab-btn:hover:not(.active) { filter: brightness(1.1); }
+    .tab-btn.active { background: var(--card); color: var(--primary); box-shadow: var(--shadow); }
+    .tab-btn:hover:not(.active) { color: var(--text-primary); background: rgba(255,255,255,0.5); }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
@@ -802,7 +801,7 @@
         <label class="form-label">Username</label>
         <div class="input-group">
           <input type="text" id="login-username" class="form-control" placeholder="Masukkan username..." autocomplete="username" />
-          <span class="input-suffix">👤</span>
+          <span class="input-suffix">👁️</span>
         </div>
       </div>
       <div class="form-group" style="margin-bottom: 8px;">
@@ -1437,29 +1436,6 @@
           </div>
         </div>
 
-        <!-- SUMMARY DASHBOARD FOR SUPERVISOR -->
-        <div id="ot-supervisor-dashboard" style="display:none; margin-bottom: 24px;">
-          <div class="card" style="border-top: 4px solid var(--primary);">
-            <div class="card-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-              <span>📊 Dashboard Summary Lembur Member</span>
-              <input type="text" id="ot-search-member" class="form-control" placeholder="Cari karyawan..." style="max-width: 250px; padding: 6px 12px; font-size:14px;" oninput="filterOTSummary()">
-            </div>
-            <div class="table-wrapper">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Karyawan</th>
-                    <th>Jumlah Pengajuan</th>
-                    <th>Total Jam Lembur</th>
-                  </tr>
-                </thead>
-                <tbody id="ot-summary-member-body">
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
         <!-- RIWAYAT LEMBUR -->
         <div class="card">
           <div class="card-title"><span>📌</span> Riwayat Pengajuan Lembur</div>
@@ -1515,15 +1491,10 @@
 
         <!-- TAB: LEMBUR -->
         <div class="tab-panel active" id="approval-tab-lembur">
-          <div style="margin-bottom:12px; display:flex; gap:8px;">
-            <button class="btn btn-success btn-sm" onclick="bulkApprove('overtime', 'approval-lembur-body')">✅ Setujui Terpilih</button>
-            <button class="btn btn-danger btn-sm" onclick="bulkReject('overtime', 'approval-lembur-body')">❌ Tolak Terpilih</button>
-          </div>
           <div class="table-wrapper">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th style="width:40px;"><input type="checkbox" onchange="toggleSelectAllApproval(this, 'approval-lembur-body')"></th>
                   <th>Karyawan</th>
                   <th>Tanggal</th>
                   <th>Jam Lembur</th>
@@ -1534,7 +1505,7 @@
                 </tr>
               </thead>
               <tbody id="approval-lembur-body">
-                <tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada pengajuan lembur</div></div></td></tr>
+                <tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada pengajuan lembur</div></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -1542,15 +1513,10 @@
 
         <!-- TAB: EDIT ABSEN -->
         <div class="tab-panel" id="approval-tab-edit">
-          <div style="margin-bottom:12px; display:flex; gap:8px;">
-            <button class="btn btn-success btn-sm" onclick="bulkApprove('editrequest', 'approval-edit-body')">✅ Setujui Terpilih</button>
-            <button class="btn btn-danger btn-sm" onclick="bulkReject('editrequest', 'approval-edit-body')">❌ Tolak Terpilih</button>
-          </div>
           <div class="table-wrapper">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th style="width:40px;"><input type="checkbox" onchange="toggleSelectAllApproval(this, 'approval-edit-body')"></th>
                   <th>Karyawan</th>
                   <th>Tanggal Absen</th>
                   <th>Absen Asli</th>
@@ -1561,7 +1527,7 @@
                 </tr>
               </thead>
               <tbody id="approval-edit-body">
-                <tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada pengajuan koreksi</div></div></td></tr>
+                <tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada pengajuan koreksi</div></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -1569,15 +1535,10 @@
 
         <!-- TAB: CUTI & IZIN -->
         <div class="tab-panel" id="approval-tab-leave">
-          <div style="margin-bottom:12px; display:flex; gap:8px;">
-            <button class="btn btn-success btn-sm" onclick="bulkApprove('leave', 'approval-leave-body')">✅ Setujui Terpilih</button>
-            <button class="btn btn-danger btn-sm" onclick="bulkReject('leave', 'approval-leave-body')">❌ Tolak Terpilih</button>
-          </div>
           <div class="table-wrapper">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th style="width:40px;"><input type="checkbox" onchange="toggleSelectAllApproval(this, 'approval-leave-body')"></th>
                   <th>Karyawan</th>
                   <th>Mulai - Selesai</th>
                   <th>Jenis</th>
@@ -1587,7 +1548,7 @@
                 </tr>
               </thead>
               <tbody id="approval-leave-body">
-                <tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada pengajuan cuti/izin</div></div></td></tr>
+                <tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada pengajuan cuti/izin</div></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -1891,6 +1852,13 @@
               <input type="text" id="setting-company-name" class="form-control" placeholder="Nama Perusahaan" />
             </div>
             <div class="form-group">
+              <label class="form-label">Logo Sistem (Opsional)</label>
+              <input type="file" id="setting-system-logo" class="form-control" accept="image/*" onchange="previewSystemLogo(this)" />
+              <div style="margin-top:8px;">
+                <img id="setting-system-logo-preview" src="" alt="Preview Logo" style="max-height: 50px; display: none; border-radius: 4px;" />
+              </div>
+            </div>
+            <div class="form-group">
               <label class="form-label">Alamat Perusahaan</label>
               <textarea id="setting-company-address" class="form-control" rows="2" placeholder="Alamat Lengkap"></textarea>
             </div>
@@ -1957,14 +1925,13 @@
                     <th>Username / ID</th>
                     <th>Email</th>
                     <th>Role</th>
-                    <th>Departemen</th>
                     <th>Status</th>
                     <th>Karyawan Ditugaskan</th>
                     <th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="mentor-table-body">
-                  <tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Belum ada User/Mentor</div></div></td></tr>
+                  <tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Belum ada User/Mentor</div></div></td></tr>
                 </tbody>
               </table>
             </div>
@@ -2387,11 +2354,6 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Departemen <span class="required">*</span></label>
-        <input type="text" id="mentor-dept" class="form-control" placeholder="Contoh: PuD" />
-      </div>
-
-      <div class="form-group">
         <label class="form-label">Status</label>
         <select id="mentor-status" class="form-control">
           <option value="Active">Aktif</option>
@@ -2486,8 +2448,6 @@
             <option value="Leader">Leader</option>
             <option value="Karyawan">Karyawan</option>
             <option value="Supervisor">User / Mentor</option>
-            <option value="Dept Head">Dept Head</option>
-            <option value="Div Head">Div Head</option>
             <option value="Admin">Admin</option>
           </select>
         </div>
@@ -2715,8 +2675,15 @@ function applyPublicSettings() {
   };
   Object.keys(els).forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.textContent = els[id];
+    if (el && els[id]) el.textContent = els[id];
   });
+  
+  if (s.SYSTEM_LOGO) {
+    const loginLogo = document.querySelector('.login-logo');
+    if (loginLogo) loginLogo.innerHTML = `<img src="${s.SYSTEM_LOGO}" alt="Logo" style="max-width:100%; max-height:100%; border-radius:10px;">`;
+    const sidebarLogo = document.querySelector('.sidebar-logo');
+    if (sidebarLogo) sidebarLogo.innerHTML = `<img src="${s.SYSTEM_LOGO}" alt="Logo" style="max-width:100%; max-height:100%; border-radius:8px;">`;
+  }
 }
 
 // ============================================================
@@ -2950,21 +2917,13 @@ async function gasRun(fnName, args, onSuccess, onError) {
       result = {
         id: data.id, userId: data.id, username: data.username, name: data.name, role: data.role, email: data.email,
         phone: data.phone, department: data.department, position: data.position, noReg: data.no_reg,
-        supervisorId: data.supervisor_id, approver2Id: data.approver_2_id || '', approver3Id: data.approver_3_id || '',
-        status: data.status, photoUrl: data.photo_url,
+        supervisorId: data.supervisor_id, status: data.status, photoUrl: data.photo_url,
         joinDate: data.join_date, address: data.address, accessibleMenus: data.accessible_menus
       };
     } 
     else if (fnName === 'getTodayAttendance') {
       const today = getTodayStr();
       const { data, error } = await supabaseClient.from('attendance').select('*').eq('user_id', userId).eq('date', today).maybeSingle();
-      if (data) {
-        result = { id: data.id, userId: data.user_id, date: data.date, clockIn: data.clock_in_time, clockOut: data.clock_out_time, locIn: data.clock_in_location, locOut: data.clock_out_location, workHours: data.work_hours, status: data.status };
-      }
-    }
-    else if (fnName === 'getAttendanceForDate') {
-      const [uId, reqDate] = args;
-      const { data, error } = await supabaseClient.from('attendance').select('*').eq('user_id', uId).eq('date', reqDate).maybeSingle();
       if (data) {
         result = { id: data.id, userId: data.user_id, date: data.date, clockIn: data.clock_in_time, clockOut: data.clock_out_time, locIn: data.clock_in_location, locOut: data.clock_out_location, workHours: data.work_hours, status: data.status };
       }
@@ -3008,46 +2967,14 @@ async function gasRun(fnName, args, onSuccess, onError) {
     else if (fnName === 'getSubordinatesAttendanceToday') {
       const [uId] = args;
       const today = getTodayStr();
-      
-      const { data: current } = await supabaseClient.from('users').select('department, role').eq('id', uId).maybeSingle();
-      const userRole = current ? current.role : '';
-      const userDept = current ? current.department : '';
-      
-      let usersQ = supabaseClient.from('users').select('*').eq('role', 'Karyawan');
-      if (userRole === 'Dept Head') {
-        if (userDept) {
-          usersQ = usersQ.or('department.eq.' + userDept + ',supervisor_id.eq.' + uId + ',approver_2_id.eq.' + uId);
-        } else {
-          usersQ = usersQ.or('supervisor_id.eq.' + uId + ',approver_2_id.eq.' + uId);
-        }
-      } else if (userRole === 'Div Head') {
-        if (userDept) {
-          usersQ = usersQ.or('department.eq.' + userDept + ',supervisor_id.eq.' + uId + ',approver_3_id.eq.' + uId);
-        } else {
-          usersQ = usersQ.or('supervisor_id.eq.' + uId + ',approver_3_id.eq.' + uId);
-        }
-      } else {
-        usersQ = usersQ.eq('supervisor_id', uId);
-      }
-      const { data: users } = await usersQ;
-      
+      const { data: users } = await supabaseClient.from('users').select('*').eq('supervisor_id', uId);
       let teamData = [];
       if (users && users.length > 0) {
           const teamIds = users.map(u => u.id);
           const { data: att } = await supabaseClient.from('attendance').select('*').eq('date', today).in('user_id', teamIds);
           teamData = users.map(u => {
               const a = att && att.find(x => x.user_id === u.id);
-              return { 
-                id: u.id, 
-                name: u.name, 
-                userName: u.name,
-                employeeName: u.name,
-                position: u.position, 
-                dept: u.department,
-                clockIn: a ? a.clock_in_time : '', 
-                clockOut: a ? a.clock_out_time : '', 
-                status: a ? a.status : 'Belum Hadir' 
-              };
+              return { id: u.id, name: u.name, position: u.position, clockIn: a ? a.clock_in_time : '', clockOut: a ? a.clock_out_time : '', status: a ? a.status : 'Belum Hadir' };
           });
       }
       result = teamData;
@@ -3061,24 +2988,16 @@ async function gasRun(fnName, args, onSuccess, onError) {
       const userDept = currentUserData ? currentUserData.department : '';
       const userRole = currentUserData ? currentUserData.role : role;
 
-      // 2. Fetch the relevant Karyawan list
+      // 2. Fetch the relevant Karyawan list (only users with role 'Karyawan')
       let usersQ = supabaseClient.from('users').select('*').eq('role', 'Karyawan');
 
       if (isAdminLevel(userRole)) {
         // Admin sees all employees
-      } else if (userRole === 'Dept Head') {
-        if (userDept) {
-          usersQ = usersQ.or('department.eq.' + userDept + ',supervisor_id.eq.' + uId + ',approver_2_id.eq.' + uId);
-        } else {
-          usersQ = usersQ.or('supervisor_id.eq.' + uId + ',approver_2_id.eq.' + uId);
-        }
-      } else if (userRole === 'Div Head') {
-        if (userDept) {
-          usersQ = usersQ.or('department.eq.' + userDept + ',supervisor_id.eq.' + uId + ',approver_3_id.eq.' + uId);
-        } else {
-          usersQ = usersQ.or('supervisor_id.eq.' + uId + ',approver_3_id.eq.' + uId);
-        }
+      } else if (userRole === 'Dept Head' || userRole === 'Div Head') {
+        // Dept/Div Head sees employees in their department
+        usersQ = usersQ.eq('department', userDept);
       } else {
+        // Supervisor/Mentor sees their direct subordinates
         usersQ = usersQ.eq('supervisor_id', uId);
       }
 
@@ -3086,65 +3005,30 @@ async function gasRun(fnName, args, onSuccess, onError) {
       const teamIds = usersData ? usersData.map(u => u.id) : [];
 
       // 3. Fetch user names map
-      const { data: usersList } = await supabaseClient.from('users').select('id, name, position, department, username, supervisor_id, approver_2_id, approver_3_id');
+      const { data: usersList } = await supabaseClient.from('users').select('id, name, position, department');
       const uMap = {};
       if (usersList) {
         usersList.forEach(u => { uMap[u.id] = u; });
       }
 
-      let ot = [], lv = [], er = [], mn = [], pwdResets = [];
+      let ot = [], lv = [], er = [], mn = [];
 
-      if (userRole === 'Admin') {
-        // Fetch password resets for admin
-        const { data: prRes } = await supabaseClient.from('password_reset_requests').select('*').eq('status', 'Pending');
-        if (prRes) {
-          pwdResets = prRes.map(d => ({
-            id: d.id,
-            userId: d.user_id,
-            username: d.username,
-            email: d.email,
-            noReg: d.no_reg,
-            employeeNoReg: d.no_reg,
-            newPassword: d.new_password,
-            status: d.status,
-            requestDate: d.request_date || '',
-            employeeName: uMap[d.user_id] ? uMap[d.user_id].name : d.username,
-            name: uMap[d.user_id] ? uMap[d.user_id].name : d.username,
-            userName: uMap[d.user_id] ? uMap[d.user_id].name : d.username
-          }));
-        }
-      } else if (teamIds.length > 0) {
-        const pendingStatuses = ['Pending', 'Waiting Approval 2', 'Waiting Approval 3'];
-
-        const filterByHierarchy = (d) => {
-          if (isAdminLevel(userRole)) return true;
-          const uConf = uMap[d.user_id] || {};
-          if (d.status === 'Pending' && uConf.supervisor_id === uId) return true;
-          if (d.status === 'Waiting Approval 2' && uConf.approver_2_id === uId) return true;
-          if (d.status === 'Waiting Approval 3' && uConf.approver_3_id === uId) return true;
-          return false;
-        };
-
+      if (teamIds.length > 0) {
         // Fetch pending overtime
-        const { data: otRes } = await supabaseClient.from('overtime').select('*').in('status', pendingStatuses).in('user_id', teamIds);
+        const { data: otRes } = await supabaseClient.from('overtime').select('*').eq('status', 'Pending').in('user_id', teamIds);
         const otData = otRes || [];
-        ot = otData.filter(filterByHierarchy).map(d => ({
-          id: d.id, userId: d.user_id,
-          name: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
-          userName: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
-          employeeName: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
+        ot = otData.map(d => ({
+          id: d.id, userId: d.user_id, name: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
           date: d.date, startTime: d.start_time, endTime: d.end_time, totalHours: d.total_hours,
           activity: d.activity, status: d.status, approvedAt: d.approved_at, type: 'overtime'
         }));
 
         // Fetch pending leave
-        const { data: lvRes } = await supabaseClient.from('leave').select('*').in('status', pendingStatuses).in('user_id', teamIds);
+        const { data: lvRes } = await supabaseClient.from('leave').select('*').eq('status', 'Pending').in('user_id', teamIds);
         const lvData = lvRes || [];
-        lv = lvData.filter(filterByHierarchy).map(d => ({
+        lv = lvData.map(d => ({
           id: d.id, userId: d.user_id,
           name: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
-          userName: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
-          employeeName: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
           position: uMap[d.user_id] ? uMap[d.user_id].position : '',
           department: uMap[d.user_id] ? uMap[d.user_id].department : '',
           type: d.type, startDate: d.start_date, endDate: d.end_date, start_date: d.start_date, end_date: d.end_date,
@@ -3152,32 +3036,22 @@ async function gasRun(fnName, args, onSuccess, onError) {
         }));
 
         // Fetch pending edit requests (koreksi absen)
-        const { data: erRes } = await supabaseClient.from('edit_requests').select('*').in('status', pendingStatuses).in('user_id', teamIds);
+        const { data: erRes } = await supabaseClient.from('edit_requests').select('*').eq('status', 'Pending').in('user_id', teamIds);
         const erData = erRes || [];
-        er = erData.filter(filterByHierarchy).map(d => ({
-          id: d.id, userId: d.user_id,
-          name: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
-          userName: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
-          employeeName: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
-          date: d.request_date, requestDate: d.request_date, attendanceDate: d.request_date, submittedAt: d.request_date,
-          originalIn: d.original_clock_in, originalOut: d.original_clock_out,
+        er = erData.map(d => ({
+          id: d.id, userId: d.user_id, name: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
+          date: d.request_date, requestDate: d.request_date, attendanceDate: d.request_date,
           originalClockIn: d.original_clock_in, originalClockOut: d.original_clock_out,
-          requestedIn: d.requested_clock_in, requestedOut: d.requested_clock_out,
           requestedClockIn: d.requested_clock_in, requestedClockOut: d.requested_clock_out,
           reason: d.reason, status: d.status, approvedAt: d.approved_at, type: 'editRequest'
         }));
 
         // Fetch pending manual attendance (absen manual)
-        const { data: mnRes } = await supabaseClient.from('manual_attendance').select('*').in('status', pendingStatuses).in('user_id', teamIds);
+        const { data: mnRes } = await supabaseClient.from('manual_attendance').select('*').eq('status', 'Pending').in('user_id', teamIds);
         const mnData = mnRes || [];
-        mn = mnData.filter(filterByHierarchy).map(d => ({
-          id: d.id, userId: d.user_id,
-          name: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
-          userName: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
-          employeeName: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
-          date: d.date, requestDate: d.date, attendanceDate: d.date,
-          clockIn: d.clock_in, clockOut: d.clock_out,
-          clock_in: d.clock_in, clock_out: d.clock_out,
+        mn = mnData.map(d => ({
+          id: d.id, userId: d.user_id, name: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
+          date: d.date, clockIn: d.clock_in, clockOut: d.clock_out,
           type: d.type, reason: d.reason, status: d.status, approvedAt: d.approved_at, manualType: 'manualAttendance'
         }));
       }
@@ -3187,7 +3061,7 @@ async function gasRun(fnName, args, onSuccess, onError) {
         editRequests: er,
         leave: lv,
         manual: mn,
-        passwordResets: pwdResets
+        passwordResets: []
       };
     }
     else if (fnName === 'getLocations' || fnName === 'getAllLocations') {
@@ -3200,17 +3074,33 @@ async function gasRun(fnName, args, onSuccess, onError) {
       if (error) throw error;
       result = (data || []).map(h => ({ id: h.id, date: h.date, name: h.name, description: h.description }));
     }
+    else if (fnName === 'getPublicSettings') {
+      const { data, error } = await supabaseClient.from('settings').select('*');
+      if (error) throw error;
+      const settingsObj = {};
+      (data || []).forEach(s => { settingsObj[s.key] = s.value; });
+      result = {
+        success: true,
+        APP_NAME: settingsObj['APP_NAME'] || 'KSP.E-Absensi',
+        COMPANY_NAME: settingsObj['COMPANY_NAME'] || 'PT. Toyota Manufacturing Indonesia',
+        COMPANY_ADDRESS: settingsObj['COMPANY_ADDRESS'] || '',
+        SYSTEM_LOGO: settingsObj['SYSTEM_LOGO'] || ''
+      };
+    }
     else if (fnName === 'getSettings') {
       const { data, error } = await supabaseClient.from('settings').select('*');
       if (error) throw error;
       const settingsObj = {};
       (data || []).forEach(s => { settingsObj[s.key] = s.value; });
       result = {
-        appName: settingsObj['APP_NAME'] || 'E-Absensi',
-        workHours: settingsObj['STANDARD_WORK_HOURS'] || 8,
-        lateTolerance: settingsObj['LATE_TOLERANCE'] || 15,
-        startTime: settingsObj['START_TIME'] || '07:30',
-        endTime: settingsObj['END_TIME'] || '16:00',
+        APP_NAME: settingsObj['APP_NAME'] || 'KSP.E-Absensi',
+        COMPANY_NAME: settingsObj['COMPANY_NAME'] || 'PT. Toyota Manufacturing Indonesia',
+        COMPANY_ADDRESS: settingsObj['COMPANY_ADDRESS'] || '',
+        SYSTEM_LOGO: settingsObj['SYSTEM_LOGO'] || '',
+        STANDARD_WORK_HOURS: settingsObj['STANDARD_WORK_HOURS'] || 8,
+        LATE_TOLERANCE: settingsObj['LATE_TOLERANCE'] || 15,
+        START_TIME: settingsObj['START_TIME'] || '07:30',
+        END_TIME: settingsObj['END_TIME'] || '16:00',
       };
     }
     else if (fnName === 'saveHoliday') {
@@ -3246,67 +3136,17 @@ async function gasRun(fnName, args, onSuccess, onError) {
       const [uId] = args;
       const now = new Date();
       const monthStr = now.toISOString().substring(0,7); // YYYY-MM
-
+      
       const { data: att } = await supabaseClient.from('attendance').select('*').eq('user_id', uId).like('date', `${monthStr}%`);
       const { data: ots } = await supabaseClient.from('overtime').select('*').eq('user_id', uId).like('date', `${monthStr}%`).eq('status', 'Approved');
-
-      const hadir = att ? att.length : 0;
-      const lemburJam = ots ? ots.reduce((sum, o) => sum + parseFloat(o.total_hours || 0), 0) : 0;
-
-      // Pending overtime count
-      const { data: pendingOts } = await supabaseClient.from('overtime').select('id').eq('user_id', uId).eq('status', 'Pending');
-      const pendingLembur = pendingOts ? pendingOts.length : 0;
-
-      // Pending edit requests count
-      const { data: pendingEds } = await supabaseClient.from('edit_requests').select('id').eq('user_id', uId).eq('status', 'Pending');
-      const pendingEdit = pendingEds ? pendingEds.length : 0;
-
-      // Leave balance calculation (12 - approved/pending Cuti Tahunan days)
-      const { data: leaves } = await supabaseClient.from('leave')
-        .select('*')
-        .eq('user_id', uId)
-        .eq('type', 'Cuti Tahunan')
-        .in('status', ['Approved', 'Pending']);
       
-      let usedLeave = 0;
-      if (leaves) {
-        leaves.forEach(lv => {
-          const s = new Date(lv.start_date);
-          const e = new Date(lv.end_date);
-          if (!isNaN(s) && !isNaN(e)) {
-            const days = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
-            usedLeave += days > 0 ? days : 0;
-          }
-        });
-      }
-      const leaveBalance = Math.max(0, 12 - usedLeave);
-
-      result = { 
-        hadir, 
-        lemburJam, 
-        pendingLembur, 
-        pendingEdit, 
-        leaveBalance,
-        telat: 0, 
-        cuti: 0, 
-        lembur: lemburJam 
-      };
+      const hadir = att ? att.length : 0;
+      const lembur = ots ? ots.reduce((sum, o) => sum + parseFloat(o.total_hours || 0), 0) : 0;
+      
+      result = { hadir, telat: 0, cuti: 0, lembur };
     }
     else if (fnName === 'submitOvertime') {
       const [uId, date, start, end, total, act] = args;
-
-      // Check for duplicate date in overtime
-      const { data: dup } = await supabaseClient.from('overtime')
-        .select('id')
-        .eq('user_id', uId)
-        .eq('date', date)
-        .in('status', ['Pending', 'Approved'])
-        .maybeSingle();
-      
-      if (dup) {
-        throw new Error('Anda sudah mengajukan lembur untuk tanggal ' + date);
-      }
-
       const newId = fnName === 'clockIn' ? genId('CT') : fnName === 'submitOvertime' ? genId('OT') : genId('ID');
       const { data: att } = await supabaseClient.from('attendance').select('id').eq('user_id', uId).eq('date', date).maybeSingle();
       const attId = att ? att.id : '';
@@ -3320,19 +3160,6 @@ async function gasRun(fnName, args, onSuccess, onError) {
     }
     else if (fnName === 'submitEditRequest') {
       const [uId, attId, date, origIn, origOut, reqIn, reqOut, reason] = args;
-
-      // Check for duplicate date in edit_requests
-      const { data: dup } = await supabaseClient.from('edit_requests')
-        .select('id')
-        .eq('user_id', uId)
-        .eq('request_date', date)
-        .in('status', ['Pending', 'Approved'])
-        .maybeSingle();
-      
-      if (dup) {
-        throw new Error('Anda sudah mengajukan koreksi absen untuk tanggal ' + date);
-      }
-
       const { error } = await supabaseClient.from('edit_requests').insert({
         id: genId('ER'), attendance_id: attId, user_id: uId, request_date: date, original_clock_in: origIn, original_clock_out: origOut,
         requested_clock_in: reqIn, requested_clock_out: reqOut, reason: reason, status: 'Pending', approved_at: getTodayStr()
@@ -3345,294 +3172,49 @@ async function gasRun(fnName, args, onSuccess, onError) {
     else if (fnName === 'processApproval') {
       const [type, id, action, approverId] = args; // action is 'approve' or 'reject'
       const statusStr = action === 'approve' ? 'Approved' : 'Rejected';
-
-      if (type === 'pwdrequest') {
-        if (action === 'approve') {
-          // Fetch request
-          const { data: reqData, error: fetchErr } = await supabaseClient.from('password_reset_requests').select('*').eq('id', id).maybeSingle();
-          if (fetchErr || !reqData) throw new Error('Data pengajuan tidak ditemukan');
-          
-          // Update password in users table
-          const { error: userErr } = await supabaseClient.from('users').update({ password: reqData.new_password }).eq('id', reqData.user_id);
-          if (userErr) throw userErr;
-        }
-        
-        // Update request status
-        const { error: reqErr } = await supabaseClient.from('password_reset_requests').update({ status: statusStr }).eq('id', id);
-        if (reqErr) throw reqErr;
-        
-        await logActivity(approverId, `Approval Reset Password`, `Melakukan ${action} pada pengajuan reset password ${id}`);
-        result = true;
+      
+      let table = '';
+      if(type === 'lembur') table = 'overtime';
+      else if(type === 'edit') table = 'edit_requests';
+      else if(type === 'leave') table = 'leave';
+      else if(type === 'manual') table = 'manual_attendance';
+      
+      if (table) {
+          const { error } = await supabaseClient.from(table).update({ status: statusStr }).eq('id', id);
+          if (error) throw error;
+          await logActivity(approverId, `Approval ${type}`, `Melakukan ${action} pada pengajuan ${id}`);
+          result = true;
       } else {
-        let table = '';
-        if(type === 'lembur' || type === 'overtime') table = 'overtime';
-        else if(type === 'edit' || type === 'editrequest') table = 'edit_requests';
-        else if(type === 'leave') table = 'leave';
-        else if(type === 'manual') table = 'manual_attendance';
-
-        if (table) {
-            const { data: reqDetail } = await supabaseClient.from(table).select('*').eq('id', id).maybeSingle();
-            if (!reqDetail) throw new Error('Data pengajuan tidak ditemukan');
-
-            const requesterId = reqDetail.user_id;
-            const { data: requester } = await supabaseClient.from('users').select('supervisor_id, approver_2_id, approver_3_id').eq('id', requesterId).maybeSingle();
-            const h = requester ? {
-              spv: requester.supervisor_id || '',
-              app2: requester.approver_2_id || '',
-              app3: requester.approver_3_id || ''
-            } : { spv: '', app2: '', app3: '' };
-
-            let targetStatus = 'Approved';
-            if (action === 'reject') {
-              targetStatus = 'Rejected';
-            } else {
-              // action === 'approve'
-              if (type === 'lembur' || type === 'overtime') {
-                if (approverId === h.spv) {
-                  if (h.app2) {
-                    targetStatus = 'Waiting Approval 2';
-                  } else if (h.app3) {
-                    targetStatus = 'Waiting Approval 3';
-                  } else {
-                    targetStatus = 'Approved';
-                  }
-                } else if (approverId === h.app2) {
-                  if (h.app3) {
-                    targetStatus = 'Waiting Approval 3';
-                  } else {
-                    targetStatus = 'Approved';
-                  }
-                } else if (approverId === h.app3) {
-                  targetStatus = 'Approved';
-                } else {
-                  targetStatus = 'Approved';
-                }
-              } else {
-                targetStatus = 'Approved';
-              }
-            }
-
-            const { error } = await supabaseClient.from(table)
-              .update({ status: targetStatus, approved_by: approverId, approved_at: getTodayStr() })
-              .eq('id', id);
-            if (error) throw error;
-
-            await logActivity(approverId, `Approval ${type}`, `Melakukan ${action} pada pengajuan ${id} (Status baru: ${targetStatus})`);
-
-            // Only perform attendance table changes if the final status is 'Approved'
-            if (targetStatus === 'Approved') {
-              if (type === 'manual') {
-                const wh = calcWorkHours(reqDetail.clock_in, reqDetail.clock_out);
-                const { data: existingAtt } = await supabaseClient.from('attendance').select('*')
-                  .eq('user_id', reqDetail.user_id)
-                  .eq('date', reqDetail.date)
-                  .maybeSingle();
-
-                if (existingAtt) {
-                  const { error: attErr } = await supabaseClient.from('attendance').update({
-                    clock_in_time: reqDetail.clock_in || '',
-                    clock_out_time: reqDetail.clock_out || '',
-                    work_hours: wh,
-                    edit_request_id: reqDetail.id
-                  }).eq('id', existingAtt.id);
-                  if (attErr) throw attErr;
-                } else {
-                  const newAttId = genId('A');
-                  const { error: attErr } = await supabaseClient.from('attendance').insert({
-                    id: newAttId,
-                    user_id: reqDetail.user_id,
-                    date: reqDetail.date,
-                    clock_in_time: reqDetail.clock_in || '',
-                    clock_in_location: 'Absen Manual (' + (reqDetail.type || 'Lupa Absen') + ')',
-                    clock_out_time: reqDetail.clock_out || '',
-                    work_hours: wh,
-                    status: 'Hadir',
-                    edit_request_id: reqDetail.id
-                  });
-                  if (attErr) throw attErr;
-                }
-              } else if (type === 'edit' || type === 'editrequest') {
-                if (reqDetail.attendance_id) {
-                  const wh = calcWorkHours(reqDetail.requested_clock_in, reqDetail.requested_clock_out);
-                  const { error: attErr } = await supabaseClient.from('attendance').update({
-                    clock_in_time: reqDetail.requested_clock_in || '',
-                    clock_out_time: reqDetail.requested_clock_out || '',
-                    work_hours: wh,
-                    edit_request_id: reqDetail.id
-                  }).eq('id', reqDetail.attendance_id);
-                  if (attErr) throw attErr;
-                }
-              }
-            }
-
-            await logActivity(approverId, `Approval ${type}`, `Melakukan ${action} pada pengajuan ${id}`);
-            result = true;
-        } else {
-            throw new Error('Tipe persetujuan tidak valid');
-        }
+          throw new Error('Tipe persetujuan tidak valid');
       }
     }
-    else if (fnName === 'processBulkApproval') {
-      const [type, ids, action, approverId] = args;
-      const statusStr = action === 'approve' ? 'Approved' : 'Rejected';
-
-      if (!ids || ids.length === 0) {
-        result = true;
-      } else {
-        if (type === 'pwdrequest') {
-          for (const id of ids) {
-            if (action === 'approve') {
-              const { data: reqData } = await supabaseClient.from('password_reset_requests').select('*').eq('id', id).maybeSingle();
-              if (reqData) {
-                const { error: userErr } = await supabaseClient.from('users').update({ password: reqData.new_password }).eq('id', reqData.user_id);
-                if (userErr) throw userErr;
-              }
-            }
-            const { error: reqErr } = await supabaseClient.from('password_reset_requests').update({ status: statusStr }).eq('id', id);
-            if (reqErr) throw reqErr;
-            await logActivity(approverId, 'Approval Reset Password', `Melakukan ${action} bulk pada pengajuan reset password ${id}`);
-          }
-        } else {
-          let table = '';
-          if(type === 'lembur' || type === 'overtime') table = 'overtime';
-          else if(type === 'edit' || type === 'editrequest') table = 'edit_requests';
-          else if(type === 'leave') table = 'leave';
-          else if(type === 'manual') table = 'manual_attendance';
-
-          if (table) {
-            // Fetch users to resolve hierarchy
-            const { data: allUsers } = await supabaseClient.from('users').select('id, supervisor_id, approver_2_id, approver_3_id');
-            const uHierarchyMap = {};
-            if (allUsers) {
-              allUsers.forEach(u => {
-                uHierarchyMap[u.id] = {
-                  spv: u.supervisor_id || '',
-                  app2: u.approver_2_id || '',
-                  app3: u.approver_3_id || ''
-                };
-              });
-            }
-
-            for (const id of ids) {
-              const { data: reqDetail } = await supabaseClient.from(table).select('*').eq('id', id).maybeSingle();
-              if (!reqDetail) continue;
-
-              const requesterId = reqDetail.user_id;
-              const h = uHierarchyMap[requesterId] || { spv: '', app2: '', app3: '' };
-
-              let targetStatus = 'Approved';
-              if (action === 'reject') {
-                targetStatus = 'Rejected';
-              } else {
-                // action === 'approve'
-                if (type === 'lembur' || type === 'overtime') {
-                  if (approverId === h.spv) {
-                    if (h.app2) {
-                      targetStatus = 'Waiting Approval 2';
-                    } else if (h.app3) {
-                      targetStatus = 'Waiting Approval 3';
-                    } else {
-                      targetStatus = 'Approved';
-                    }
-                  } else if (approverId === h.app2) {
-                    if (h.app3) {
-                      targetStatus = 'Waiting Approval 3';
-                    } else {
-                      targetStatus = 'Approved';
-                    }
-                  } else if (approverId === h.app3) {
-                    targetStatus = 'Approved';
-                  } else {
-                    targetStatus = 'Approved';
-                  }
-                } else {
-                  targetStatus = 'Approved';
-                }
-              }
-
-              const { error: updateErr } = await supabaseClient.from(table)
-                .update({ status: targetStatus, approved_by: approverId, approved_at: getTodayStr() })
-                .eq('id', id);
-              if (updateErr) throw updateErr;
-
-              await logActivity(approverId, `Approval ${type}`, `Melakukan ${action} pada pengajuan ${id} (Status baru: ${targetStatus})`);
-
-              if (targetStatus === 'Approved') {
-                if (type === 'manual') {
-                  const wh = calcWorkHours(reqDetail.clock_in, reqDetail.clock_out);
-                  const { data: existingAtt } = await supabaseClient.from('attendance').select('*')
-                    .eq('user_id', reqDetail.user_id)
-                    .eq('date', reqDetail.date)
-                    .maybeSingle();
-
-                  if (existingAtt) {
-                    const { error: attErr } = await supabaseClient.from('attendance').update({
-                      clock_in_time: reqDetail.clock_in || '',
-                      clock_out_time: reqDetail.clock_out || '',
-                      work_hours: wh,
-                      edit_request_id: reqDetail.id
-                    }).eq('id', existingAtt.id);
-                    if (attErr) throw attErr;
-                  } else {
-                    const newAttId = genId('A');
-                    const { error: attErr } = await supabaseClient.from('attendance').insert({
-                      id: newAttId,
-                      user_id: reqDetail.user_id,
-                      date: reqDetail.date,
-                      clock_in_time: reqDetail.clock_in || '',
-                      clock_in_location: 'Absen Manual (' + (reqDetail.type || 'Lupa Absen') + ')',
-                      clock_out_time: reqDetail.clock_out || '',
-                      work_hours: wh,
-                      status: 'Hadir',
-                      edit_request_id: reqDetail.id
-                    });
-                    if (attErr) throw attErr;
-                  }
-                } else if (type === 'edit' || type === 'editrequest') {
-                  if (reqDetail.attendance_id) {
-                    const wh = calcWorkHours(reqDetail.requested_clock_in, reqDetail.requested_clock_out);
-                    const { error: attErr } = await supabaseClient.from('attendance').update({
-                      clock_in_time: reqDetail.requested_clock_in || '',
-                      clock_out_time: reqDetail.requested_clock_out || '',
-                      work_hours: wh,
-                      edit_request_id: reqDetail.id
-                    }).eq('id', reqDetail.attendance_id);
-                    if (attErr) throw attErr;
-                  }
-                }
-              }
-            }
-          } else {
-            throw new Error('Tipe persetujuan tidak valid');
-          }
-        }
-        result = true;
-      }
-    }
-    
     else if (fnName === 'submitLeave') {
       const [uId, type, start, end, reason, proof] = args;
-
-      // Check for overlapping leave requests
-      const { data: overlappingLeaves } = await supabaseClient.from('leave')
-        .select('id, start_date, end_date, type')
-        .eq('user_id', uId)
-        .in('status', ['Pending', 'Approved']);
-
-      if (overlappingLeaves) {
-        for (const lv of overlappingLeaves) {
-          if (lv.start_date <= end && lv.end_date >= start) {
-            throw new Error(`Tanggal pengajuan bentrok dengan pengajuan ${lv.type} (${lv.start_date} s/d ${lv.end_date}) yang sudah ada.`);
-          }
-        }
-      }
-
       const { error } = await supabaseClient.from('leave').insert({
         id: genId('LV'), user_id: uId, type: type, start_date: start, end_date: end, reason: reason, proof_url: proof, status: 'Pending', approved_at: getTodayStr()
       });
       if (error) throw error;
       await logActivity(uId, 'Pengajuan Cuti/Izin', `Mengajukan ${type} dari ${start} s/d ${end}`);
-      result = { success: true, message: 'Pengajuan cuti/izin berhasil dikirim' };
+      result = true;
+    }
+    else if (fnName === 'getSupervisorDashboardData') {
+      const [uId] = args;
+      const today = getTodayStr();
+      const { data: users } = await supabaseClient.from('users').select('*').eq('supervisor_id', uId);
+      const teamIds = users ? users.map(u => u.id) : [];
+      
+      let teamStatus = [];
+      let pendingApprovals = [];
+      
+      if (teamIds.length > 0) {
+          const { data: att } = await supabaseClient.from('attendance').select('*').eq('date', today).in('user_id', teamIds);
+          
+          teamStatus = users.map(u => {
+            const a = att && att.find(x => x.user_id === u.id);
+            return { name: u.name, position: u.position, status: a ? 'Hadir' : 'Belum Hadir', clockIn: a ? a.clock_in_time : '--:--' };
+          });
+      }
+      result = { teamStatus, pendingApprovals };
     }
     else if (fnName === 'saveLocation') {
       const [loc] = args;
@@ -3664,22 +3246,20 @@ async function gasRun(fnName, args, onSuccess, onError) {
       result = data.map(d => ({
         id: d.id, username: d.username, password: d.password, role: d.role, name: d.name, email: d.email, phone: d.phone,
         department: d.department, dept: d.department, position: d.position, noReg: d.no_reg,
-        supervisorId: d.supervisor_id, approver2Id: d.approver_2_id || '', approver3Id: d.approver_3_id || '',
-        status: d.status === 'Active' ? 'Aktif' : (d.status === 'Inactive' ? 'Nonaktif' : d.status),
+        supervisorId: d.supervisor_id, status: d.status === 'Active' ? 'Aktif' : (d.status === 'Inactive' ? 'Nonaktif' : d.status),
         photoUrl: d.photo_url, joinDate: d.join_date, address: d.address,
-        accessibleMenus: d.accessible_menus
+        accessibleMenus: d.accessible_menus ? d.accessible_menus.split(',') : []
       }));
     }
     else if (fnName === 'getMentorList') {
-      const { data, error } = await supabaseClient.from('users').select('*').neq('role', 'Karyawan').neq('role', 'Admin');
+      const { data, error } = await supabaseClient.from('users').select('*').not('role', 'eq', 'Karyawan').not('role', 'eq', 'Admin');
       if (error) throw error;
       result = data.map(d => ({
         id: d.id, username: d.username, password: d.password, role: d.role, name: d.name, email: d.email, phone: d.phone,
         department: d.department, dept: d.department, position: d.position, noReg: d.no_reg,
-        supervisorId: d.supervisor_id, approver2Id: d.approver_2_id || '', approver3Id: d.approver_3_id || '',
-        status: d.status === 'Active' ? 'Aktif' : (d.status === 'Inactive' ? 'Nonaktif' : d.status),
+        supervisorId: d.supervisor_id, status: d.status === 'Active' ? 'Aktif' : (d.status === 'Inactive' ? 'Nonaktif' : d.status),
         photoUrl: d.photo_url, joinDate: d.join_date, address: d.address,
-        accessibleMenus: d.accessible_menus
+        accessibleMenus: d.accessible_menus ? d.accessible_menus.split(',') : []
       }));
     }
     else if (fnName === 'saveEmployee') {
@@ -3705,8 +3285,6 @@ async function gasRun(fnName, args, onSuccess, onError) {
         position: emp.position || '',
         no_reg: emp.noReg || emp.no_reg || '',
         supervisor_id: emp.supervisorId || emp.supervisor_id || null,
-        approver_2_id: emp.approver_2_id || emp.approver2Id || null,
-        approver_3_id: emp.approver_3_id || emp.approver3Id || null,
         status: dbStatus,
         photo_url: emp.photoUrl || emp.photo_url || null,
         join_date: emp.joinDate || emp.join_date || null,
@@ -3779,33 +3357,26 @@ async function gasRun(fnName, args, onSuccess, onError) {
     else if (fnName === 'getAdminDashboardData') {
       const uId = args[0] || APP_STATE.user.id;
       const role = args[1] || APP_STATE.user.role;
-
+      
       const today = getTodayStr();
       const d7 = new Date(); d7.setDate(d7.getDate() - 6);
       const past7Str = d7.toISOString().split('T')[0];
-      const monthStr = today.substring(0,7); // YYYY-MM
 
+      // 1. Get current user's department and role from database
       const { data: currentUserData } = await supabaseClient.from('users').select('department, role').eq('id', uId).maybeSingle();
       const userDept = currentUserData ? currentUserData.department : '';
       const userRole = currentUserData ? currentUserData.role : role;
 
+      // 2. Fetch the relevant Karyawan list (only users with role 'Karyawan')
       let usersQ = supabaseClient.from('users').select('*').eq('role', 'Karyawan');
 
       if (isAdminLevel(userRole)) {
-        // Admin sees all
-      } else if (userRole === 'Dept Head') {
-        if (userDept) {
-          usersQ = usersQ.or('department.eq.' + userDept + ',supervisor_id.eq.' + uId + ',approver_2_id.eq.' + uId);
-        } else {
-          usersQ = usersQ.or('supervisor_id.eq.' + uId + ',approver_2_id.eq.' + uId);
-        }
-      } else if (userRole === 'Div Head') {
-        if (userDept) {
-          usersQ = usersQ.or('department.eq.' + userDept + ',supervisor_id.eq.' + uId + ',approver_3_id.eq.' + uId);
-        } else {
-          usersQ = usersQ.or('supervisor_id.eq.' + uId + ',approver_3_id.eq.' + uId);
-        }
+        // Admin sees all employees
+      } else if (userRole === 'Dept Head' || userRole === 'Div Head') {
+        // Dept/Div Head sees employees in their department
+        usersQ = usersQ.eq('department', userDept);
       } else {
+        // Supervisor/Mentor sees their direct subordinates
         usersQ = usersQ.eq('supervisor_id', uId);
       }
 
@@ -3813,30 +3384,30 @@ async function gasRun(fnName, args, onSuccess, onError) {
       const teamIds = usersData ? usersData.map(u => u.id) : [];
       const total = teamIds.length;
 
+      // 3. Fetch attendance and leave data for those team IDs
       let attAll = [];
       let leaveData = [];
-      let attToday = [];
-      let leaveToday = [];
 
       if (teamIds.length > 0) {
         const { data: attRes } = await supabaseClient.from('attendance')
-          .select('*')
+          .select('date, clock_in_time, user_id')
           .gte('date', past7Str)
           .in('user_id', teamIds);
         attAll = attRes || [];
-        attToday = attAll.filter(a => a.date === today);
 
         const { data: lvRes } = await supabaseClient.from('leave')
           .select('*')
           .eq('status', 'Approved')
+          .lte('start_date', today)
+          .gte('end_date', today)
           .in('user_id', teamIds);
         leaveData = lvRes || [];
-        
-        leaveToday = leaveData.filter(l => l.start_date <= today && l.end_date >= today);
       }
 
-      const hadir = attToday ? attToday.filter(a => a.clock_in_time).length : 0;
+      // 4. Calculate Hadir Today
+      const hadir = attAll ? attAll.filter(a => a.date === today && a.clock_in_time).length : 0;
 
+      // 5. Calculate Last 7 Days Attendance Chart
       const last7Days = [];
       const days = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
       for (let i = 6; i >= 0; i--) {
@@ -3847,258 +3418,286 @@ async function gasRun(fnName, args, onSuccess, onError) {
         last7Days.push({ label: `${dayName} (${d.getDate()}/${d.getMonth()+1})`, count: count });
       }
 
-      let totalLembur = 0;
+      result = {
+          hadirToday: hadir,
+          totalKaryawan: total,
+          pendingTotal: 0,
+          totalLembur: 0,
+          last7Chart: last7Days
+      };
+    }
+    else if (fnName === 'getSupervisorDashboardData') {
+      const [uId] = args;
+      const today = getTodayStr();
+      const { data: users } = await supabaseClient.from('users').select('*').eq('supervisor_id', uId);
+      const teamIds = users ? users.map(u => u.id) : [];
+      
+      let teamStatus = [];
+      let pendingApprovals = [];
+      
       if (teamIds.length > 0) {
-        const { data: otRes } = await supabaseClient.from('overtime')
-          .select('total_hours')
-          .eq('status', 'Approved')
-          .like('date', `${monthStr}%`)
+          const { data: att } = await supabaseClient.from('attendance').select('*').eq('date', today).in('user_id', teamIds);
+          
+          teamStatus = users.map(u => {
+            const a = att && att.find(x => x.user_id === u.id);
+            return { name: u.name, position: u.position, status: a ? 'Hadir' : 'Belum Hadir', clockIn: a ? a.clock_in_time : '--:--' };
+          });
+      }
+      result = { teamStatus, pendingApprovals };
+    }
+    else if (fnName === 'saveLocation') {
+      const [loc] = args;
+      const newId = loc.id || genId('LOC');
+      const { error } = await supabaseClient.from('locations').upsert({
+        id: newId, name: loc.name, lat: loc.lat, lng: loc.lng, radius: loc.radius
+      });
+      if (error) throw error;
+      await logActivity(APP_STATE.user.id, 'Simpan Lokasi', `Menyimpan lokasi ${loc.name}`);
+      result = true;
+    }
+    else if (fnName === 'deleteLocation') {
+      const [id] = args;
+      const { error } = await supabaseClient.from('locations').delete().eq('id', id);
+      if (error) throw error;
+      await logActivity(APP_STATE.user.id, 'Hapus Lokasi', `Menghapus lokasi ${id}`);
+      result = true;
+    }
+    else if (fnName === 'saveSetting') {
+      const [key, val] = args;
+      const { error } = await supabaseClient.from('settings').upsert({ key: key, value: val });
+      if (error) throw error;
+      await logActivity(APP_STATE.user.id, 'Ubah Pengaturan', `Mengubah pengaturan ${key}`);
+      result = true;
+    }
+    else if (fnName === 'getEmployees' || fnName === 'getAllEmployees') {
+      const { data, error } = await supabaseClient.from('users').select('*');
+      if (error) throw error;
+      result = data.map(d => ({
+        id: d.id, username: d.username, password: d.password, role: d.role, name: d.name, email: d.email, phone: d.phone,
+        department: d.department, dept: d.department, position: d.position, noReg: d.no_reg,
+        supervisorId: d.supervisor_id, status: d.status === 'Active' ? 'Aktif' : (d.status === 'Inactive' ? 'Nonaktif' : d.status),
+        photoUrl: d.photo_url, joinDate: d.join_date, address: d.address,
+        accessibleMenus: d.accessible_menus ? d.accessible_menus.split(',') : []
+      }));
+    }
+    else if (fnName === 'getMentorList') {
+      const { data, error } = await supabaseClient.from('users').select('*').not('role', 'eq', 'Karyawan').not('role', 'eq', 'Admin');
+      if (error) throw error;
+      result = data.map(d => ({
+        id: d.id, username: d.username, password: d.password, role: d.role, name: d.name, email: d.email, phone: d.phone,
+        department: d.department, dept: d.department, position: d.position, noReg: d.no_reg,
+        supervisorId: d.supervisor_id, status: d.status === 'Active' ? 'Aktif' : (d.status === 'Inactive' ? 'Nonaktif' : d.status),
+        photoUrl: d.photo_url, joinDate: d.join_date, address: d.address,
+        accessibleMenus: d.accessible_menus ? d.accessible_menus.split(',') : []
+      }));
+    }
+    else if (fnName === 'saveEmployee') {
+      const [emp] = args;
+      const newId = emp.id || genId('USR');
+      const dbStatus = emp.status === 'Aktif' ? 'Active' : (emp.status === 'Nonaktif' ? 'Inactive' : (emp.status || 'Active'));
+      
+      let menus = '';
+      if (emp.accessibleMenus) {
+        menus = Array.isArray(emp.accessibleMenus) ? emp.accessibleMenus.join(',') : emp.accessibleMenus;
+      } else if (emp.accessible_menus) {
+        menus = Array.isArray(emp.accessible_menus) ? emp.accessible_menus.join(',') : emp.accessible_menus;
+      }
+
+      const updateData = {
+        id: newId,
+        username: emp.username,
+        role: emp.role,
+        name: emp.name,
+        email: emp.email,
+        phone: emp.phone || '',
+        department: emp.department || emp.dept || '',
+        position: emp.position || '',
+        no_reg: emp.noReg || emp.no_reg || '',
+        supervisor_id: emp.supervisorId || emp.supervisor_id || null,
+        status: dbStatus,
+        photo_url: emp.photoUrl || emp.photo_url || null,
+        join_date: emp.joinDate || emp.join_date || null,
+        address: emp.address || '',
+        accessible_menus: menus
+      };
+
+      if (emp.password && emp.password.trim() !== '') {
+        updateData.password = emp.password;
+      }
+
+      const { error } = await supabaseClient.from('users').upsert(updateData);
+      if (error) throw error;
+      await logActivity(APP_STATE.user.id, 'Simpan Karyawan', `Menyimpan data karyawan ${emp.name}`);
+      result = true;
+    }
+    else if (fnName === 'saveMentor') {
+      const [mentor] = args;
+      const newId = mentor.id || genId('USR');
+      const dbStatus = mentor.status === 'Aktif' ? 'Active' : (mentor.status === 'Nonaktif' ? 'Inactive' : (mentor.status || 'Active'));
+      
+      let menus = '';
+      if (mentor.accessibleMenus) {
+        menus = Array.isArray(mentor.accessibleMenus) ? mentor.accessibleMenus.join(',') : mentor.accessibleMenus;
+      } else if (mentor.accessible_menus) {
+        menus = Array.isArray(mentor.accessible_menus) ? mentor.accessible_menus.join(',') : mentor.accessible_menus;
+      }
+
+      const updateData = {
+        id: newId,
+        username: mentor.username,
+        role: mentor.role,
+        name: mentor.name,
+        email: mentor.email,
+        phone: mentor.phone || '',
+        department: mentor.department || mentor.dept || 'Pengguna Jasa',
+        position: mentor.position || mentor.role || '',
+        no_reg: mentor.noReg || mentor.no_reg || '',
+        supervisor_id: mentor.supervisorId || mentor.supervisor_id || null,
+        status: dbStatus,
+        photo_url: mentor.photoUrl || mentor.photo_url || null,
+        join_date: mentor.joinDate || mentor.join_date || null,
+        address: mentor.address || '',
+        accessible_menus: menus
+      };
+
+      if (mentor.password && mentor.password.trim() !== '') {
+        updateData.password = mentor.password;
+      }
+
+      const { error } = await supabaseClient.from('users').upsert(updateData);
+      if (error) throw error;
+      await logActivity(APP_STATE.user.id, 'Simpan Mentor', `Menyimpan data user/mentor ${mentor.name}`);
+      result = true;
+    }
+    else if (fnName === 'deleteEmployee') {
+      const [id] = args;
+      const { error } = await supabaseClient.from('users').delete().eq('id', id);
+      if (error) throw error;
+      await logActivity(APP_STATE.user.id, 'Hapus Karyawan', `Menghapus karyawan ${id}`);
+      result = true;
+    }
+    else if (fnName === 'deleteMentor') {
+      const [id] = args;
+      const { error } = await supabaseClient.from('users').delete().eq('id', id);
+      if (error) throw error;
+      await logActivity(APP_STATE.user.id, 'Hapus Mentor', `Menghapus mentor ${id}`);
+      result = true;
+    }
+    else if (fnName === 'getAdminDashboardData') {
+      const uId = args[0] || APP_STATE.user.id;
+      const role = args[1] || APP_STATE.user.role;
+      
+      const today = getTodayStr();
+      const d7 = new Date(); d7.setDate(d7.getDate() - 6);
+      const past7Str = d7.toISOString().split('T')[0];
+
+      // 1. Get current user's department and role from database
+      const { data: currentUserData } = await supabaseClient.from('users').select('department, role').eq('id', uId).maybeSingle();
+      const userDept = currentUserData ? currentUserData.department : '';
+      const userRole = currentUserData ? currentUserData.role : role;
+
+      // 2. Fetch the relevant Karyawan list (only users with role 'Karyawan')
+      let usersQ = supabaseClient.from('users').select('*').eq('role', 'Karyawan');
+
+      if (isAdminLevel(userRole)) {
+        // Admin sees all employees
+      } else if (userRole === 'Dept Head' || userRole === 'Div Head') {
+        // Dept/Div Head sees employees in their department
+        usersQ = usersQ.eq('department', userDept);
+      } else {
+        // Supervisor/Mentor sees their direct subordinates
+        usersQ = usersQ.eq('supervisor_id', uId);
+      }
+
+      const { data: usersData } = await usersQ;
+      const teamIds = usersData ? usersData.map(u => u.id) : [];
+      const total = teamIds.length;
+
+      // 3. Fetch attendance and leave data for those team IDs
+      let attAll = [];
+      let leaveData = [];
+
+      if (teamIds.length > 0) {
+        const { data: attRes } = await supabaseClient.from('attendance')
+          .select('date, clock_in_time, user_id')
+          .gte('date', past7Str)
           .in('user_id', teamIds);
-        totalLembur = otRes ? otRes.reduce((sum, o) => sum + parseFloat(o.total_hours || 0), 0) : 0;
+        attAll = attRes || [];
+
+        const { data: lvRes } = await supabaseClient.from('leave')
+          .select('*')
+          .eq('status', 'Approved')
+          .lte('start_date', today)
+          .gte('end_date', today)
+          .in('user_id', teamIds);
+        leaveData = lvRes || [];
       }
 
-      let pendingTotal = 0;
-      if (userRole === 'Admin') {
-        const { data: pendingPr } = await supabaseClient.from('password_reset_requests').select('id').eq('status', 'Pending');
-        pendingTotal = pendingPr ? pendingPr.length : 0;
-      } else if (teamIds.length > 0) {
-        const uMap = {};
-        if (usersData) {
-          usersData.forEach(u => { uMap[u.id] = u; });
-        }
-        const pendingStatuses = ['Pending', 'Waiting Approval 2', 'Waiting Approval 3'];
-        const filterByHierarchy = (d) => {
-          const uConf = uMap[d.user_id] || {};
-          if (d.status === 'Pending' && uConf.supervisor_id === uId) return true;
-          if (d.status === 'Waiting Approval 2' && uConf.approver_2_id === uId) return true;
-          if (d.status === 'Waiting Approval 3' && uConf.approver_3_id === uId) return true;
-          return false;
-        };
+      // 4. Calculate Hadir Today
+      const hadir = attAll ? attAll.filter(a => a.date === today && a.clock_in_time).length : 0;
 
-        const { data: pendingOt } = await supabaseClient.from('overtime').select('id, user_id, status').in('status', pendingStatuses).in('user_id', teamIds);
-        const { data: pendingLv } = await supabaseClient.from('leave').select('id, user_id, status').in('status', pendingStatuses).in('user_id', teamIds);
-        const { data: pendingEd } = await supabaseClient.from('edit_requests').select('id, user_id, status').in('status', pendingStatuses).in('user_id', teamIds);
-        const { data: pendingMn } = await supabaseClient.from('manual_attendance').select('id, user_id, status').in('status', pendingStatuses).in('user_id', teamIds);
-
-        const countOt = pendingOt ? pendingOt.filter(filterByHierarchy).length : 0;
-        const countLv = pendingLv ? pendingLv.filter(filterByHierarchy).length : 0;
-        const countEd = pendingEd ? pendingEd.filter(filterByHierarchy).length : 0;
-        const countMn = pendingMn ? pendingMn.filter(filterByHierarchy).length : 0;
-
-        pendingTotal = countOt + countLv + countEd + countMn;
-      }
-
-      let employeesToday = [];
-      if (teamIds.length > 0) {
-        employeesToday = usersData.map(u => {
-          const a = attToday && attToday.find(x => x.user_id === u.id);
-          const lv = leaveToday && leaveToday.find(x => x.user_id === u.id);
-          
-          let status = 'Belum Hadir';
-          let clockIn = '';
-          let clockOut = '';
-          let workHours = '';
-          
-          if (a) {
-            status = a.status || 'Hadir';
-            clockIn = a.clock_in_time || '';
-            clockOut = a.clock_out_time || '';
-            workHours = a.work_hours || '';
-          } else if (lv) {
-            status = lv.type || 'Cuti';
-          }
-          
-          return {
-            id: u.id,
-            name: u.name,
-            dept: u.department || '',
-            clockIn: clockIn,
-            clockOut: clockOut,
-            workHours: workHours,
-            status: status
-          };
-        });
+      // 5. Calculate Last 7 Days Attendance Chart
+      const last7Days = [];
+      const days = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const dStr = d.toISOString().split('T')[0];
+        const dayName = days[d.getDay()];
+        const count = attAll ? attAll.filter(a => a.date === dStr && a.clock_in_time).length : 0;
+        last7Days.push({ label: `${dayName} (${d.getDate()}/${d.getMonth()+1})`, count: count });
       }
 
       result = {
           hadirToday: hadir,
           totalKaryawan: total,
-          pendingTotal: pendingTotal,
-          totalLembur: totalLembur,
-          last7Chart: last7Days,
-          employeesToday: employeesToday
+          pendingTotal: 0,
+          totalLembur: 0,
+          last7Chart: last7Days
       };
     }
     else if (fnName === 'getReportByDateRange') {
       const [userIds, role, startDate, endDate] = args;
       const ids = Array.isArray(userIds) ? userIds : [userIds];
+      const { data: att } = await supabaseClient.from('attendance').select('*').in('user_id', ids).gte('date', startDate).lte('date', endDate).order('date', { ascending: true });
+      const { data: ots } = await supabaseClient.from('overtime').select('*').in('user_id', ids).gte('date', startDate).lte('date', endDate);
+      const { data: lvs } = await supabaseClient.from('leave').select('*').in('user_id', ids).gte('start_date', startDate).lte('end_date', endDate);
       
-      // Fetch user names
-      const { data: users } = await supabaseClient.from('users').select('id, name').in('id', ids);
-      const userNames = {};
-      if (users) {
-        users.forEach(u => { userNames[u.id] = u.name || u.id; });
-      }
-
-      // Fetch holidays
-      const { data: holidays } = await supabaseClient.from('holidays').select('*');
-      const holMap = {};
-      if (holidays) {
-        holidays.forEach(h => {
-          if (h.date) holMap[h.date] = true;
-        });
-      }
-
-      // Fetch attendance
-      const { data: allAttendance } = await supabaseClient.from('attendance')
-        .select('*')
-        .in('user_id', ids)
-        .gte('date', startDate)
-        .lte('date', endDate);
-      
-      // Fetch overtimes (Approved)
-      const { data: allOvertimes } = await supabaseClient.from('overtime')
-        .select('*')
-        .in('user_id', ids)
-        .eq('status', 'Approved')
-        .gte('date', startDate)
-        .lte('date', endDate);
-      
-      // Fetch leaves (Approved)
-      const { data: allLeaves } = await supabaseClient.from('leave')
-        .select('*')
-        .in('user_id', ids)
-        .eq('status', 'Approved');
-
       const rows = [];
-      const dayNames = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-      
-      // Helper function to format Date object to YYYY-MM-DD
-      function toDateString(d) {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const dt = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${dt}`;
+      if (att) {
+        for (const a of att) {
+          const ot = ots ? ots.find(o => o.user_id === a.user_id && o.date === a.date) : null;
+          rows.push({
+            userId: a.user_id, date: a.date, clockIn: a.clock_in_time, clockOut: a.clock_out_time,
+            locIn: a.clock_in_location, locOut: a.clock_out_location, workHours: a.work_hours, status: a.status,
+            otHours: ot ? ot.total_hours : 0, leaveType: ''
+          });
+        }
       }
-
-      const start = new Date(startDate + 'T00:00:00');
-      const end = new Date(endDate + 'T00:00:00');
-
-      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-        for (const uid of ids) {
-          const uName = userNames[uid] || uid;
-
-          const attMap = {};
-          if (allAttendance) {
-            allAttendance.forEach(a => {
-              if (a.user_id === uid && a.date) attMap[a.date] = a;
-            });
-          }
-
-          const otMap = {};
-          if (allOvertimes) {
-            allOvertimes.forEach(o => {
-              if (o.user_id === uid && o.date) otMap[o.date] = o;
-            });
-          }
-
-          const myLeaves = allLeaves ? allLeaves.filter(l => l.user_id === uid) : [];
-
-          const current = new Date(start);
-          while (current <= end) {
-            const dStr = toDateString(current);
-            const dayName = dayNames[current.getDay()];
-            const isWknd = (current.getDay() === 0 || current.getDay() === 6);
-            const isHol = holMap[dStr] === true;
-
-            const att = attMap[dStr] || null;
-            const ot = otMap[dStr] || null;
-
-            let leave = null;
-            for (const ml of myLeaves) {
-              if (dStr >= ml.start_date && dStr <= ml.end_date) {
-                leave = ml;
-                break;
-              }
-            }
-
-            let status = 'Tidak Hadir';
-            if (leave) status = leave.type;
-            else if (isHol) status = 'Libur Nasional';
-            else if (isWknd) status = 'Hari Libur';
-            else if (att && att.clock_in_time) status = 'Hadir';
-
-            rows.push({
-              userName: uName,
-              date: dStr,
-              day: dayName,
-              status: status,
-              clockIn: att ? att.clock_in_time : '',
-              clockOut: att ? att.clock_out_time : '',
-              workHours: att ? att.work_hours : '',
-              otHours: ot ? parseFloat(ot.total_hours) || 0 : 0,
-              otActivity: ot ? ot.activity || '' : '',
-              otStatus: ot ? ot.status || '' : '',
-              isWeekend: isWknd,
-              isHoliday: isHol
-            });
-
-            current.setDate(current.getDate() + 1);
+      if (lvs) {
+        for (const lv of lvs) {
+          if (!rows.find(r => r.userId === lv.user_id && r.date === lv.start_date)) {
+            rows.push({ userId: lv.user_id, date: lv.start_date, clockIn: '', clockOut: '', locIn: '', locOut: '', workHours: 0, status: lv.status, otHours: 0, leaveType: lv.type });
           }
         }
       }
       result = rows;
     }
-    else if (fnName === 'getTeamOvertimes') {
+else if (fnName === 'getTeamOvertimes') {
       const [uId, role] = args;
+      // If admin, get ALL overtimes. If supervisor/mentor, get their team's.
       let query = supabaseClient.from('overtime').select('*').order('date', { ascending: false });
-      
-      let teamIds = [];
-      const { data: currentUserData } = await supabaseClient.from('users').select('department, role').eq('id', uId).maybeSingle();
-      const userDept = currentUserData ? currentUserData.department : '';
-      const userRole = currentUserData ? currentUserData.role : role;
-
-      if (isAdminLevel(userRole)) {
-        const { data: allUsers } = await supabaseClient.from('users').select('id');
-        teamIds = allUsers ? allUsers.map(u => u.id) : [];
-      } else if (userRole === 'Dept Head') {
-        let deptUsers;
-        if (userDept) {
-          const { data } = await supabaseClient.from('users').select('id').or('department.eq.' + userDept + ',supervisor_id.eq.' + uId + ',approver_2_id.eq.' + uId);
-          deptUsers = data;
-        } else {
-          const { data } = await supabaseClient.from('users').select('id').or('supervisor_id.eq.' + uId + ',approver_2_id.eq.' + uId);
-          deptUsers = data;
-        }
-        teamIds = deptUsers ? deptUsers.map(u => u.id) : [];
-      } else if (userRole === 'Div Head') {
-        let deptUsers;
-        if (userDept) {
-          const { data } = await supabaseClient.from('users').select('id').or('department.eq.' + userDept + ',supervisor_id.eq.' + uId + ',approver_3_id.eq.' + uId);
-          deptUsers = data;
-        } else {
-          const { data } = await supabaseClient.from('users').select('id').or('supervisor_id.eq.' + uId + ',approver_3_id.eq.' + uId);
-          deptUsers = data;
-        }
-        teamIds = deptUsers ? deptUsers.map(u => u.id) : [];
-      } else {
+      if (!isAdminLevel(role)) {
         const { data: subUsers } = await supabaseClient.from('users').select('id').eq('supervisor_id', uId);
-        teamIds = subUsers ? subUsers.map(u => u.id) : [];
-        if (!teamIds.includes(uId)) teamIds.push(uId);
-      }
-
-      if (teamIds.length > 0) {
+        const teamIds = subUsers ? subUsers.map(u => u.id) : [uId];
         query = query.in('user_id', teamIds);
       }
       const { data, error } = await query;
       if (error) throw error;
+      // Fetch user names
       const { data: usersD } = await supabaseClient.from('users').select('id, name');
       const uMap = {}; if (usersD) usersD.forEach(u => { uMap[u.id] = u.name; });
       result = (data || []).map(d => ({
-        id: d.id, userId: d.user_id, 
-        name: uMap[d.user_id] || d.user_id,
-        userName: uMap[d.user_id] || d.user_id,
-        employeeName: uMap[d.user_id] || d.user_id,
+        id: d.id, userId: d.user_id, name: uMap[d.user_id] || d.user_id,
         date: d.date, startTime: d.start_time, endTime: d.end_time, totalHours: d.total_hours,
         activity: d.activity, status: d.status, approvedAt: d.approved_at
       }));
@@ -4106,42 +3705,9 @@ async function gasRun(fnName, args, onSuccess, onError) {
     else if (fnName === 'getTeamLeaves') {
       const [uId, role] = args;
       let query = supabaseClient.from('leave').select('*').order('start_date', { ascending: false });
-      
-      let teamIds = [];
-      const { data: currentUserData } = await supabaseClient.from('users').select('department, role').eq('id', uId).maybeSingle();
-      const userDept = currentUserData ? currentUserData.department : '';
-      const userRole = currentUserData ? currentUserData.role : role;
-
-      if (isAdminLevel(userRole)) {
-        const { data: allUsers } = await supabaseClient.from('users').select('id');
-        teamIds = allUsers ? allUsers.map(u => u.id) : [];
-      } else if (userRole === 'Dept Head') {
-        let deptUsers;
-        if (userDept) {
-          const { data } = await supabaseClient.from('users').select('id').or('department.eq.' + userDept + ',supervisor_id.eq.' + uId + ',approver_2_id.eq.' + uId);
-          deptUsers = data;
-        } else {
-          const { data } = await supabaseClient.from('users').select('id').or('supervisor_id.eq.' + uId + ',approver_2_id.eq.' + uId);
-          deptUsers = data;
-        }
-        teamIds = deptUsers ? deptUsers.map(u => u.id) : [];
-      } else if (userRole === 'Div Head') {
-        let deptUsers;
-        if (userDept) {
-          const { data } = await supabaseClient.from('users').select('id').or('department.eq.' + userDept + ',supervisor_id.eq.' + uId + ',approver_3_id.eq.' + uId);
-          deptUsers = data;
-        } else {
-          const { data } = await supabaseClient.from('users').select('id').or('supervisor_id.eq.' + uId + ',approver_3_id.eq.' + uId);
-          deptUsers = data;
-        }
-        teamIds = deptUsers ? deptUsers.map(u => u.id) : [];
-      } else {
+      if (!isAdminLevel(role)) {
         const { data: subUsers } = await supabaseClient.from('users').select('id').eq('supervisor_id', uId);
-        teamIds = subUsers ? subUsers.map(u => u.id) : [];
-        if (!teamIds.includes(uId)) teamIds.push(uId);
-      }
-
-      if (teamIds.length > 0) {
+        const teamIds = subUsers ? subUsers.map(u => u.id) : [uId];
         query = query.in('user_id', teamIds);
       }
       const { data, error } = await query;
@@ -4151,8 +3717,6 @@ async function gasRun(fnName, args, onSuccess, onError) {
       result = (data || []).map(d => ({
         id: d.id, userId: d.user_id,
         name: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
-        userName: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
-        employeeName: uMap[d.user_id] ? uMap[d.user_id].name : d.user_id,
         position: uMap[d.user_id] ? uMap[d.user_id].position : '',
         department: uMap[d.user_id] ? uMap[d.user_id].department : '',
         type: d.type, startDate: d.start_date, endDate: d.end_date, start_date: d.start_date, end_date: d.end_date,
@@ -4162,42 +3726,9 @@ async function gasRun(fnName, args, onSuccess, onError) {
     else if (fnName === 'getTeamEditRequests') {
       const [uId, role] = args;
       let query = supabaseClient.from('edit_requests').select('*').order('request_date', { ascending: false });
-      
-      let teamIds = [];
-      const { data: currentUserData } = await supabaseClient.from('users').select('department, role').eq('id', uId).maybeSingle();
-      const userDept = currentUserData ? currentUserData.department : '';
-      const userRole = currentUserData ? currentUserData.role : role;
-
-      if (isAdminLevel(userRole)) {
-        const { data: allUsers } = await supabaseClient.from('users').select('id');
-        teamIds = allUsers ? allUsers.map(u => u.id) : [];
-      } else if (userRole === 'Dept Head') {
-        let deptUsers;
-        if (userDept) {
-          const { data } = await supabaseClient.from('users').select('id').or('department.eq.' + userDept + ',supervisor_id.eq.' + uId + ',approver_2_id.eq.' + uId);
-          deptUsers = data;
-        } else {
-          const { data } = await supabaseClient.from('users').select('id').or('supervisor_id.eq.' + uId + ',approver_2_id.eq.' + uId);
-          deptUsers = data;
-        }
-        teamIds = deptUsers ? deptUsers.map(u => u.id) : [];
-      } else if (userRole === 'Div Head') {
-        let deptUsers;
-        if (userDept) {
-          const { data } = await supabaseClient.from('users').select('id').or('department.eq.' + userDept + ',supervisor_id.eq.' + uId + ',approver_3_id.eq.' + uId);
-          deptUsers = data;
-        } else {
-          const { data } = await supabaseClient.from('users').select('id').or('supervisor_id.eq.' + uId + ',approver_3_id.eq.' + uId);
-          deptUsers = data;
-        }
-        teamIds = deptUsers ? deptUsers.map(u => u.id) : [];
-      } else {
+      if (!isAdminLevel(role)) {
         const { data: subUsers } = await supabaseClient.from('users').select('id').eq('supervisor_id', uId);
-        teamIds = subUsers ? subUsers.map(u => u.id) : [];
-        if (!teamIds.includes(uId)) teamIds.push(uId);
-      }
-
-      if (teamIds.length > 0) {
+        const teamIds = subUsers ? subUsers.map(u => u.id) : [uId];
         query = query.in('user_id', teamIds);
       }
       const { data, error } = await query;
@@ -4205,14 +3736,9 @@ async function gasRun(fnName, args, onSuccess, onError) {
       const { data: usersD } = await supabaseClient.from('users').select('id, name');
       const uMap = {}; if (usersD) usersD.forEach(u => { uMap[u.id] = u.name; });
       result = (data || []).map(d => ({
-        id: d.id, userId: d.user_id, 
-        name: uMap[d.user_id] || d.user_id,
-        userName: uMap[d.user_id] || d.user_id,
-        employeeName: uMap[d.user_id] || d.user_id,
-        date: d.request_date, requestDate: d.request_date, attendanceDate: d.request_date, submittedAt: d.request_date,
-        originalIn: d.original_clock_in, originalOut: d.original_clock_out,
+        id: d.id, userId: d.user_id, name: uMap[d.user_id] || d.user_id,
+        date: d.request_date, requestDate: d.request_date,
         originalClockIn: d.original_clock_in, originalClockOut: d.original_clock_out,
-        requestedIn: d.requested_clock_in, requestedOut: d.requested_clock_out,
         requestedClockIn: d.requested_clock_in, requestedClockOut: d.requested_clock_out,
         reason: d.reason, status: d.status, approvedAt: d.approved_at
       }));
@@ -4220,42 +3746,9 @@ async function gasRun(fnName, args, onSuccess, onError) {
     else if (fnName === 'getTeamManualAttendance') {
       const [uId, role] = args;
       let query = supabaseClient.from('manual_attendance').select('*').order('date', { ascending: false });
-      
-      let teamIds = [];
-      const { data: currentUserData } = await supabaseClient.from('users').select('department, role').eq('id', uId).maybeSingle();
-      const userDept = currentUserData ? currentUserData.department : '';
-      const userRole = currentUserData ? currentUserData.role : role;
-
-      if (isAdminLevel(userRole)) {
-        const { data: allUsers } = await supabaseClient.from('users').select('id');
-        teamIds = allUsers ? allUsers.map(u => u.id) : [];
-      } else if (userRole === 'Dept Head') {
-        let deptUsers;
-        if (userDept) {
-          const { data } = await supabaseClient.from('users').select('id').or('department.eq.' + userDept + ',supervisor_id.eq.' + uId + ',approver_2_id.eq.' + uId);
-          deptUsers = data;
-        } else {
-          const { data } = await supabaseClient.from('users').select('id').or('supervisor_id.eq.' + uId + ',approver_2_id.eq.' + uId);
-          deptUsers = data;
-        }
-        teamIds = deptUsers ? deptUsers.map(u => u.id) : [];
-      } else if (userRole === 'Div Head') {
-        let deptUsers;
-        if (userDept) {
-          const { data } = await supabaseClient.from('users').select('id').or('department.eq.' + userDept + ',supervisor_id.eq.' + uId + ',approver_3_id.eq.' + uId);
-          deptUsers = data;
-        } else {
-          const { data } = await supabaseClient.from('users').select('id').or('supervisor_id.eq.' + uId + ',approver_3_id.eq.' + uId);
-          deptUsers = data;
-        }
-        teamIds = deptUsers ? deptUsers.map(u => u.id) : [];
-      } else {
+      if (!isAdminLevel(role)) {
         const { data: subUsers } = await supabaseClient.from('users').select('id').eq('supervisor_id', uId);
-        teamIds = subUsers ? subUsers.map(u => u.id) : [];
-        if (!teamIds.includes(uId)) teamIds.push(uId);
-      }
-
-      if (teamIds.length > 0) {
+        const teamIds = subUsers ? subUsers.map(u => u.id) : [uId];
         query = query.in('user_id', teamIds);
       }
       const { data, error } = await query;
@@ -4263,14 +3756,9 @@ async function gasRun(fnName, args, onSuccess, onError) {
       const { data: usersD } = await supabaseClient.from('users').select('id, name');
       const uMap = {}; if (usersD) usersD.forEach(u => { uMap[u.id] = u.name; });
       result = (data || []).map(d => ({
-        id: d.id, userId: d.user_id, 
-        name: uMap[d.user_id] || d.user_id,
-        userName: uMap[d.user_id] || d.user_id,
-        employeeName: uMap[d.user_id] || d.user_id,
-        date: d.date, requestDate: d.date, attendanceDate: d.date,
-        clockIn: d.clock_in, clockOut: d.clock_out,
-        clock_in: d.clock_in, clock_out: d.clock_out,
-        type: d.type, reason: d.reason, status: d.status, approvedAt: d.approved_at, manualType: 'manualAttendance'
+        id: d.id, userId: d.user_id, name: uMap[d.user_id] || d.user_id,
+        date: d.date, clockIn: d.clock_in, clockOut: d.clock_out,
+        type: d.type, reason: d.reason, status: d.status, approvedAt: d.approved_at
       }));
     }
     else if (fnName === 'getSubordinatesOvertime' || fnName === 'getApprovalLembur') {
@@ -4329,12 +3817,9 @@ async function gasRun(fnName, args, onSuccess, onError) {
       const [uId] = args;
       const { data, error } = await supabaseClient.from('overtime').select('*').eq('user_id', uId).order('date', { ascending: false });
       if (error) throw error;
-      const { data: userData } = await supabaseClient.from('users').select('name').eq('id', uId).maybeSingle();
-      const uName = userData ? userData.name : uId;
       result = (data || []).map(d => ({
-        id: d.id, attendanceId: d.attendance_id, userId: d.user_id, 
-        name: uName, userName: uName, employeeName: uName,
-        date: d.date, startTime: d.start_time, endTime: d.end_time, totalHours: d.total_hours,
+        id: d.id, attendanceId: d.attendance_id, userId: d.user_id, date: d.date,
+        startTime: d.start_time, endTime: d.end_time, totalHours: d.total_hours,
         activity: d.activity, status: d.status, approvedAt: d.approved_at,
         notes: d.notes || ''
       }));
@@ -4343,15 +3828,9 @@ async function gasRun(fnName, args, onSuccess, onError) {
       const [uId] = args;
       const { data, error } = await supabaseClient.from('edit_requests').select('*').eq('user_id', uId).order('request_date', { ascending: false });
       if (error) throw error;
-      const { data: userData } = await supabaseClient.from('users').select('name').eq('id', uId).maybeSingle();
-      const uName = userData ? userData.name : uId;
       result = (data || []).map(d => ({
         id: d.id, attendanceId: d.attendance_id, userId: d.user_id, date: d.request_date,
-        name: uName, userName: uName, employeeName: uName,
-        requestDate: d.request_date, attendanceDate: d.request_date, submittedAt: d.request_date,
-        originalIn: d.original_clock_in, originalOut: d.original_clock_out,
-        originalClockIn: d.original_clock_in, originalClockOut: d.original_clock_out,
-        requestedIn: d.requested_clock_in, requestedOut: d.requested_clock_out,
+        requestDate: d.request_date, originalClockIn: d.original_clock_in, originalClockOut: d.original_clock_out,
         requestedClockIn: d.requested_clock_in, requestedClockOut: d.requested_clock_out,
         reason: d.reason, status: d.status, approvedAt: d.approved_at
       }));
@@ -4360,11 +3839,8 @@ async function gasRun(fnName, args, onSuccess, onError) {
       const [uId] = args;
       const { data, error } = await supabaseClient.from('leave').select('*').eq('user_id', uId).order('start_date', { ascending: false });
       if (error) throw error;
-      const { data: userData } = await supabaseClient.from('users').select('name').eq('id', uId).maybeSingle();
-      const uName = userData ? userData.name : uId;
       result = (data || []).map(d => ({
         id: d.id, userId: d.user_id, type: d.type, startDate: d.start_date, endDate: d.end_date,
-        name: uName, userName: uName, employeeName: uName,
         reason: d.reason, proofUrl: d.proof_url, status: d.status, approvedAt: d.approved_at,
         start_date: d.start_date, end_date: d.end_date
       }));
@@ -4373,31 +3849,13 @@ async function gasRun(fnName, args, onSuccess, onError) {
       const [uId] = args;
       const { data, error } = await supabaseClient.from('manual_attendance').select('*').eq('user_id', uId).order('date', { ascending: false });
       if (error) throw error;
-      const { data: userData } = await supabaseClient.from('users').select('name').eq('id', uId).maybeSingle();
-      const uName = userData ? userData.name : uId;
       result = (data || []).map(d => ({
-        id: d.id, userId: d.user_id, date: d.date, 
-        name: uName, userName: uName, employeeName: uName,
-        clockIn: d.clock_in, clockOut: d.clock_out,
-        clock_in: d.clock_in, clock_out: d.clock_out,
+        id: d.id, userId: d.user_id, date: d.date, clockIn: d.clock_in, clockOut: d.clock_out,
         type: d.type, reason: d.reason, status: d.status, approvedAt: d.approved_at
       }));
     }
     else if (fnName === 'submitManualAttendance') {
       const [uId, date, clockIn, clockOut, type, reason] = args;
-      
-      // Check for duplicate date in manual_attendance
-      const { data: dup } = await supabaseClient.from('manual_attendance')
-        .select('id')
-        .eq('user_id', uId)
-        .eq('date', date)
-        .in('status', ['Pending', 'Approved'])
-        .maybeSingle();
-      
-      if (dup) {
-        throw new Error('Anda sudah mengajukan absen manual untuk tanggal ' + date);
-      }
-
       const newId = genId('MN');
       const { error } = await supabaseClient.from('manual_attendance').insert({
         id: newId, user_id: uId, date: date, clock_in: clockIn, clock_out: clockOut,
@@ -4405,125 +3863,7 @@ async function gasRun(fnName, args, onSuccess, onError) {
       });
       if (error) throw error;
       await logActivity(uId, 'Absen Manual', 'Mengajukan absen manual tanggal ' + date);
-      result = { success: true, message: 'Pengajuan absen manual berhasil dikirim' };
-    }
-    else if (fnName === 'resetForgotPassword') {
-      const [username, email, noreg, newPassword] = args;
-      
-      const { data: user, error: findErr } = await supabaseClient.from('users')
-        .select('*')
-        .eq('username', username)
-        .eq('email', email)
-        .eq('no_reg', noreg)
-        .eq('status', 'Active')
-        .maybeSingle();
-        
-      if (findErr || !user) {
-        result = { success: false, message: 'Data verifikasi tidak cocok dengan profil aktif.' };
-      } else {
-        const reqId = genId('PR');
-        const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
-        const { error: insErr } = await supabaseClient.from('password_reset_requests').insert({
-          id: reqId,
-          user_id: user.id,
-          username: username,
-          email: email,
-          no_reg: noreg,
-          new_password: newPassword,
-          status: 'Pending',
-          request_date: nowStr
-        });
-        
-        if (insErr) throw insErr;
-        
-        await logActivity(user.id, 'Request Reset Password', 'Mengajukan reset password baru');
-        result = { success: true, message: 'Permintaan reset password berhasil diajukan. Mohon hubungi Admin untuk persetujuan.' };
-      }
-    }
-    else if (fnName === 'batchImportEmployees') {
-      const [uploadList] = args;
-      let successCount = 0;
-      let failCount = 0;
-      const errors = [];
-
-      // Fetch all users to resolve supervisor ID
-      const { data: allDbUsers } = await supabaseClient.from('users').select('id, username, no_reg, name');
-      const userLookup = {};
-      if (allDbUsers) {
-        allDbUsers.forEach(u => {
-          if (u.username) userLookup[u.username.toLowerCase()] = u.id;
-          if (u.no_reg) userLookup[u.no_reg.toLowerCase()] = u.id;
-          if (u.name) userLookup[u.name.toLowerCase()] = u.id;
-        });
-      }
-
-      for (const emp of uploadList) {
-        try {
-          const newId = emp.id || genId('USR');
-          const dbStatus = emp.status === 'Active' ? 'Active' : 'Inactive';
-          
-          let menus = emp.accessible_menus || 'view-dashboard-karyawan,view-overtime,view-edit-attendance,view-leave,view-manual,view-report';
-          if (emp.role && (emp.role.indexOf('Mentor') !== -1 || emp.role === 'Dept Head' || emp.role === 'Div Head' || emp.role === 'Supervisor' || emp.role === 'Leader')) {
-             menus = 'view-dashboard-supervisor,view-overtime,view-leave,view-edit-attendance,view-manual,view-approval,view-report,view-activity-log';
-          } else if (emp.role === 'Admin') {
-             menus = 'view-dashboard-admin,view-approval,view-report,view-employees,view-settings,view-activity-log';
-          }
-
-          let resolvedSpvId = null;
-          if (emp.supervisor_nik) {
-            const spvRef = emp.supervisor_nik.trim().toLowerCase();
-            resolvedSpvId = userLookup[spvRef] || null;
-          }
-          let resolvedApp2Id = null;
-          if (emp.approver_2_nik) {
-            const app2Ref = emp.approver_2_nik.trim().toLowerCase();
-            resolvedApp2Id = userLookup[app2Ref] || null;
-          }
-          let resolvedApp3Id = null;
-          if (emp.approver_3_nik) {
-            const app3Ref = emp.approver_3_nik.trim().toLowerCase();
-            resolvedApp3Id = userLookup[app3Ref] || null;
-          }
-
-          const updateData = {
-            id: newId,
-            username: emp.username,
-            role: emp.role || 'Karyawan',
-            name: emp.name,
-            email: emp.email || '',
-            phone: emp.phone || '',
-            department: emp.department || emp.dept || 'Pengguna Jasa',
-            position: emp.position || emp.role || '',
-            no_reg: emp.no_reg || '',
-            supervisor_id: resolvedSpvId,
-            approver_2_id: resolvedApp2Id,
-            approver_3_id: resolvedApp3Id,
-            status: dbStatus,
-            photo_url: emp.photo_url || null,
-            join_date: emp.join_date || null,
-            address: emp.address || '',
-            accessible_menus: menus
-          };
-
-          if (emp.password) {
-            updateData.password = emp.password;
-          }
-
-          const { error } = await supabaseClient.from('users').upsert(updateData);
-          if (error) throw error;
-          successCount++;
-        } catch (err) {
-          failCount++;
-          errors.push(`Username ${emp.username}: ${err.message}`);
-        }
-      }
-
-      result = {
-        success: true,
-        successCount: successCount,
-        failCount: failCount,
-        errors: errors
-      };
+      result = true;
     }
     else {
       // Fallback
@@ -4785,7 +4125,6 @@ function goToApproval(tabType) {
     else if (tabType === 'edit') btn = document.querySelector(`.tab-bar button[onclick*="'approval', 'edit'"]`);
     else if (tabType === 'leave') btn = document.querySelector(`.tab-bar button[onclick*="'approval', 'leave'"]`);
     else if (tabType === 'manual') btn = document.querySelector(`.tab-bar button[onclick*="'approval', 'manual'"]`);
-    else if (tabType === 'pwd') btn = document.querySelector(`.tab-bar button[onclick*="'approval', 'pwd'"]`);
     if (btn) switchTab('approval', tabType, btn);
   }, 50);
 }
@@ -4943,13 +4282,13 @@ function doLogout() {
 // ============================================================
 //  APP INIT
 // ============================================================
-function initApp(user, savedView) {
+function initApp(user) {
   document.getElementById('view-login').style.display = 'none';
   document.getElementById('app-shell').classList.remove('hidden');
 
   // Set header info
   const roleBadge = document.getElementById('header-role-badge');
-  const displayRole = user.role;
+  const displayRole = isSupervisorRole(user.role) ? 'User/Mentor' : user.role;
   roleBadge.textContent = displayRole;
   roleBadge.className = 'role-badge role-' + user.role.toLowerCase();
 
@@ -4969,17 +4308,23 @@ function initApp(user, savedView) {
   // Start clock
   startClock();
 
-  // Navigate to saved view or default dashboard
-  const targetView = savedView || (isAdminLevel(user.role) ? 'view-dashboard-admin' : isSupervisorRole(user.role) ? 'view-dashboard-supervisor' : 'view-dashboard-karyawan');
-  navigateTo(targetView);
+  // Navigate to default dashboard
+  if (isSupervisorRole(user.role) || isAdminLevel(user.role)) {
+    navigateTo('view-dashboard-admin');
+    loadAdminDashboard();
+  } else if (isSupervisorRole(user.role)) {
+    navigateTo('view-dashboard-supervisor');
+    loadSupervisorDashboard();
+  } else {
+    navigateTo('view-dashboard-karyawan');
+    loadKaryawanDashboard();
+  }
 
   // Init report filters
   const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  document.getElementById('report-start-date').value = `${y}-${m}-01`;
-  document.getElementById('report-end-date').value = `${y}-${m}-${d}`;
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  document.getElementById('report-start-date').value = startOfMonth.toISOString().split('T')[0];
+  document.getElementById('report-end-date').value = now.toISOString().split('T')[0];
 }
 
 // ============================================================
@@ -5572,7 +4917,7 @@ function renderSVDynamicHistory() {
       <td>${r.clockOut || '-'}</td>
       <td>${formatWorkHours(r.workHours, r.clockIn, r.clockOut)}</td>
       <td style="max-width:180px; font-size:12px;" title="${r.locIn || '-'}">${truncate(r.locIn || '-', 40)}</td>
-      <td><span class="badge ${(['Hadir', 'Present', 'PRESENT'].includes(r.status)) ? 'badge-success' : 'badge-warning'}">${(['Hadir', 'Present', 'PRESENT'].includes(r.status)) ? 'Hadir' : (r.status || 'Hadir')}</span></td>
+      <td><span class="badge ${r.status !== 'Hadir' ? 'badge-warning' : 'badge-success'}">${r.status || 'Hadir'}</span></td>
     </tr>
   `).join('');
   
@@ -5629,40 +4974,24 @@ function loadAdminDashboard() {
       // Chart
       renderAttendanceChart(data.last7Chart || []);
 
-      // Pending list
-      const isUserAdmin = APP_STATE.user && APP_STATE.user.role && APP_STATE.user.role.toLowerCase() === 'admin';
+      // Pending list (admin)
       gasRun('getPendingApprovals', [APP_STATE.user.id, APP_STATE.user.role],
         function(pd) {
           const list = document.getElementById('admin-pending-list');
-          let allPending = [];
-          if (isUserAdmin) {
-            allPending = (pd.passwordResets || []).slice(0, 5);
-          } else {
-            allPending = [...(pd.overtime || []), ...(pd.editRequests || [])].slice(0, 5);
-          }
+          const allPending = [...(pd.overtime || []), ...(pd.editRequests || [])].slice(0, 5);
           if (allPending.length === 0) {
             list.innerHTML = `<div class="empty-state" style="padding:24px;"><div class="empty-state-icon" style="font-size:32px;">📭</div><div class="empty-state-text">Tidak ada pending</div></div>`;
             return;
           }
           list.innerHTML = allPending.map(item => {
-            if (isUserAdmin) {
-              return `<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;">
-                <div>
-                  <div style="font-weight:600;font-size:13px;">${item.employeeName || item.username}</div>
-                  <div style="font-size:11px;color:var(--text-secondary);">🔑 Lupa Password - ${item.requestDate ? formatDate(item.requestDate.split(' ')[0]) : '-'}</div>
-                </div>
-                <button class="btn btn-primary btn-sm" onclick="goToApproval('pwd')">Lihat</button>
-              </div>`;
-            } else {
-              const isOT = item.type === 'overtime';
-              return `<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;">
-                <div>
-                  <div style="font-weight:600;font-size:13px;">${item.employeeName || item.userName || item.name}</div>
-                  <div style="font-size:11px;color:var(--text-secondary);">${isOT ? '⏱️ Lembur' : '📝 Koreksi'} - ${formatDateLong(isOT ? item.date : item.attendanceDate)}</div>
-                </div>
-                <button class="btn btn-primary btn-sm" onclick="goToApproval('${isOT ? 'lembur' : 'edit'}')">Lihat</button>
-              </div>`;
-            }
+            const isOT = item.type === 'overtime';
+            return `<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;">
+              <div>
+                <div style="font-weight:600;font-size:13px;">${item.userName}</div>
+                <div style="font-size:11px;color:var(--text-secondary);">${isOT ? '⏱️ Lembur' : '📝 Koreksi'} - ${formatDateLong(isOT ? item.date : item.attendanceDate)}</div>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="goToApproval('${isOT ? 'lembur' : 'edit'}')">Lihat</button>
+            </div>`;
           }).join('');
         }, null
       );
@@ -5692,7 +5021,7 @@ function renderAdminEmployeeTodayFiltered(data) {
       <td>${e.clockIn || '-'}</td>
       <td>${e.clockOut || '-'}</td>
       <td>${formatWorkHours(e.workHours, e.clockIn, e.clockOut)}</td>
-      <td>${e.status === 'Hadir' ? '<span class="badge badge-success badge-dot">Hadir</span>' : `<span class="badge badge-warning badge-dot">${e.status}</span>`}</td>
+      <td>${e.status === 'Hadir' ? '<span class="badge badge-success badge-dot">Hadir</span>' : '<span class="badge badge-warning badge-dot">Belum Hadir</span>'}</td>
     </tr>
   `).join('');
 }
@@ -5758,12 +5087,9 @@ function loadOvertimeView() {
     // Sembunyikan form, tampilkan kolom NAMA
     if (otFormGrid) otFormGrid.style.display = 'none';
     if (nameTh) nameTh.style.display = '';
-    const sd = document.getElementById('ot-supervisor-dashboard');
-    if (sd) sd.style.display = 'block';
 
     gasRun('getTeamOvertimes', [user.id, user.role], function(data) {
       renderOvertimeHistory(data);
-      renderOTSupervisorSummary(data);
       document.getElementById('ot-summary-total').textContent = '-';
       document.getElementById('ot-summary-approved').textContent = '-';
     }, null);
@@ -5771,8 +5097,6 @@ function loadOvertimeView() {
     // Tampilkan form, sembunyikan kolom NAMA
     if (otFormGrid) otFormGrid.style.display = 'grid';
     if (nameTh) nameTh.style.display = 'none';
-    const sd = document.getElementById('ot-supervisor-dashboard');
-    if (sd) sd.style.display = 'none';
 
     gasRun('getMyOvertime', [user.id], function(data) {
       renderOvertimeHistory(data);
@@ -5782,42 +5106,6 @@ function loadOvertimeView() {
       document.getElementById('ot-summary-approved').textContent = approved.length;
     }, null);
   }
-}
-
-let currentOTSummaryData = [];
-function renderOTSupervisorSummary(data) {
-  const summary = {};
-  data.forEach(ot => {
-    const name = ot.userName || 'Unknown';
-    if (!summary[name]) {
-      summary[name] = { name: name, approvedCount: 0, totalHours: 0 };
-    }
-    if (ot.status !== 'Rejected') {
-      summary[name].approvedCount++;
-      summary[name].totalHours += (parseFloat(ot.totalHours) || 0);
-    }
-  });
-  currentOTSummaryData = Object.values(summary).sort((a,b) => b.totalHours - a.totalHours);
-  filterOTSummary();
-}
-
-function filterOTSummary() {
-  const el = document.getElementById('ot-search-member');
-  const q = (el ? el.value : '').toLowerCase();
-  const tbody = document.getElementById('ot-summary-member-body');
-  if (!tbody) return;
-  const filtered = currentOTSummaryData.filter(x => x.name.toLowerCase().includes(q));
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="3"><div class="empty-state"><div class="empty-state-text">Tidak ada data summary lembur</div></div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = filtered.map(x => `
-    <tr>
-      <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">${getInitials(x.name)}</div><strong>${x.name}</strong></div></td>
-      <td><span class="badge badge-secondary">${x.approvedCount} pengajuan</span></td>
-      <td><strong style="color:var(--primary); font-size:16px;">${x.totalHours.toFixed(1)} Jam</strong></td>
-    </tr>
-  `).join('');
 }
 
 function calcOTHours() {
@@ -5938,19 +5226,12 @@ function loadApprovalData() {
       const pwdBadge = document.getElementById('approval-pwd-count');
       if (pwdBadge) pwdBadge.textContent = pendingPwd;
 
-      // Show/hide tabs based on admin role
+      // Show/hide reset password tab based on admin role
       const isUserAdmin = user && user.role && user.role.toLowerCase() === 'admin';
-      const otTabBtn = document.getElementById('tab-btn-approval-lembur');
-      const editTabBtn = document.getElementById('tab-btn-approval-edit');
-      const leaveTabBtn = document.getElementById('tab-btn-approval-leave');
-      const manualTabBtn = document.getElementById('tab-btn-approval-manual');
       const pwdTabBtn = document.getElementById('tab-btn-reset-pwd');
-
-      if (otTabBtn) otTabBtn.style.display = isUserAdmin ? 'none' : 'inline-block';
-      if (editTabBtn) editTabBtn.style.display = isUserAdmin ? 'none' : 'inline-block';
-      if (leaveTabBtn) leaveTabBtn.style.display = isUserAdmin ? 'none' : 'inline-block';
-      if (manualTabBtn) manualTabBtn.style.display = isUserAdmin ? 'none' : 'inline-block';
-      if (pwdTabBtn) pwdTabBtn.style.display = isUserAdmin ? 'inline-block' : 'none';
+      if (pwdTabBtn) {
+        pwdTabBtn.style.display = isUserAdmin ? 'inline-block' : 'none';
+      }
 
       renderApprovalLembur(data.overtime || []);
       renderApprovalEdit(data.editRequests || []);
@@ -5958,12 +5239,6 @@ function loadApprovalData() {
       renderApprovalManual(data.manual || []);
       if (isUserAdmin) {
         renderApprovalPassword(data.passwordResets || []);
-        if (pwdTabBtn) switchTab('approval', 'pwd', pwdTabBtn);
-      } else {
-        const activeTab = document.querySelector('.approval-tab-bar .tab-btn.active');
-        if (!activeTab || activeTab === pwdTabBtn) {
-          if (otTabBtn) switchTab('approval', 'lembur', otTabBtn);
-        }
       }
     },
     () => hideLoading()
@@ -5973,22 +5248,19 @@ function loadApprovalData() {
 function renderApprovalLembur(data) {
   const tbody = document.getElementById('approval-lembur-body');
   if (!data || data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada pengajuan lembur</div></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada pengajuan lembur</div></div></td></tr>`;
     return;
   }
   tbody.innerHTML = data.map(ot => {
     const statusBadge = ot.status === 'Approved' ? '<span class="badge badge-success badge-dot">Disetujui</span>' :
                         ot.status === 'Rejected' ? '<span class="badge badge-danger badge-dot">Ditolak</span>' :
                         '<span class="badge badge-warning badge-dot">Pending</span>';
-    const isPending = (ot.status === 'Pending' || ot.status === 'Waiting Approval 2' || ot.status === 'Waiting Approval 3');
-    const actions = isPending ? `
+    const actions = ot.status === 'Pending' ? `
       <div style="display:flex;gap:6px;">
         <button class="btn btn-success btn-sm" onclick="handleApproveOT('${ot.id}')">✅ Setuju</button>
         <button class="btn btn-danger btn-sm" onclick="handleRejectOT('${ot.id}')">❌ Tolak</button>
       </div>` : `<span style="font-size:12px;color:var(--text-secondary);">${ot.approvedBy || 'Admin'}</span>`;
-    const cb = isPending ? `<input type="checkbox" class="approval-cb" value="${ot.id}">` : '';
     return `<tr>
-      <td>${cb}</td>
       <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">${getInitials(ot.employeeName)}</div><span>${ot.employeeName}</span></div></td>
       <td>${formatDate(ot.date)}</td>
       <td>${ot.startTime} - ${ot.endTime}</td>
@@ -6003,7 +5275,7 @@ function renderApprovalLembur(data) {
 function renderApprovalEdit(data) {
   const tbody = document.getElementById('approval-edit-body');
   if (!data || data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada pengajuan koreksi</div></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada pengajuan koreksi</div></div></td></tr>`;
     return;
   }
   tbody.innerHTML = data.map(er => {
@@ -6015,9 +5287,7 @@ function renderApprovalEdit(data) {
         <button class="btn btn-success btn-sm" onclick="handleApproveEdit('${er.id}')">✅ Setuju</button>
         <button class="btn btn-danger btn-sm" onclick="handleRejectEdit('${er.id}')">❌ Tolak</button>
       </div>` : `<span style="font-size:12px;color:var(--text-secondary);">-</span>`;
-    const cb = er.status === 'Pending' ? `<input type="checkbox" class="approval-cb" value="${er.id}">` : '';
     return `<tr>
-      <td>${cb}</td>
       <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">${getInitials(er.employeeName)}</div><span>${er.employeeName}</span></div></td>
       <td>${formatDate(er.attendanceDate)}</td>
       <td><span style="font-size:12px;">${er.originalIn || '--:--'} / ${er.originalOut || '--:--'}</span></td>
@@ -6069,7 +5339,7 @@ function handleRejectEdit(id) {
 function renderApprovalLeave(data) {
   const tbody = document.getElementById('approval-leave-body');
   if (!data || data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada pengajuan cuti/izin</div></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Tidak ada pengajuan cuti/izin</div></div></td></tr>`;
     return;
   }
   tbody.innerHTML = data.map(l => {
@@ -6083,11 +5353,8 @@ function renderApprovalLeave(data) {
       </div>` : `<span style="font-size:12px;color:var(--text-secondary);">-</span>`;
     
     actions += `<button class="btn btn-secondary btn-sm" style="margin-top:6px;background:#e2e8f0;color:#1e293b;border:none;" onclick="downloadLeavePDF('${l.id}', 'approval')">📄 PDF</button>`;
-    
-    const cb = l.status === 'Pending' ? `<input type="checkbox" class="approval-cb" value="${l.id}">` : '';
 
     return `<tr>
-      <td>${cb}</td>
       <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">${getInitials(l.employeeName)}</div><span>${l.employeeName}</span></div></td>
       <td>${formatDate(l.startDate)} - ${formatDate(l.endDate)}</td>
       <td><span class="badge badge-secondary">${l.type}</span></td>
@@ -6169,7 +5436,7 @@ function initReportView() {
     document.getElementById('report-employee-filter-group').style.display = '';
     gasRun('getAllEmployees', [],
       function(employees) {
-        let members = employees.filter(e => e.id !== user.id && (e.supervisorId === user.id || e.approver2Id === user.id || e.approver3Id === user.id));
+        let members = employees.filter(e => e.id !== user.id);
         if (members.length === 0) {
           empSelect.innerHTML = `<option value="">-- Tidak ada member --</option>`;
           empSelect.disabled = true;
@@ -6264,7 +5531,7 @@ function renderReportSummary(rows) {
 
   document.getElementById('rpt-hari-kerja').textContent = workDays;
   document.getElementById('rpt-hadir').textContent = hadir;
-  document.getElementById('rpt-lembur-jam').textContent = Number.isInteger(lemburJam) ? lemburJam : lemburJam.toFixed(2);
+  document.getElementById('rpt-lembur-jam').textContent = lemburJam;
   document.getElementById('rpt-avg-jam').textContent = avgHours;
   document.getElementById('report-summary').style.display = '';
   document.getElementById('report-table-card').style.display = '';
@@ -6725,12 +5992,19 @@ function loadSettings() {
       APP_STATE.holidays = locs.holidays || [];
       renderLocationsTable(locs.locations || []);
       renderHolidaysTable(locs.holidays || []);
-      if (locs.settings) {
-        document.getElementById('setting-app-name').value = locs.settings.APP_NAME || '';
-        document.getElementById('setting-work-hours').value = locs.settings.STANDARD_WORK_HOURS || 8;
-        document.getElementById('setting-late-tolerance').value = locs.settings.LATE_TOLERANCE || 15;
-        document.getElementById('setting-start-time').value = locs.settings.START_TIME || '07:30';
-        document.getElementById('setting-end-time').value = locs.settings.END_TIME || '16:00';
+      const s = locs.settings || settings || {};
+      document.getElementById('setting-app-name').value = s.APP_NAME || s.appName || '';
+      document.getElementById('setting-company-name').value = s.COMPANY_NAME || s.companyName || '';
+      document.getElementById('setting-company-address').value = s.COMPANY_ADDRESS || s.companyAddress || '';
+      document.getElementById('setting-work-hours').value = s.STANDARD_WORK_HOURS || s.workHours || 8;
+      document.getElementById('setting-late-tolerance').value = s.LATE_TOLERANCE || s.lateTolerance || 15;
+      document.getElementById('setting-start-time').value = s.START_TIME || s.startTime || '07:30';
+      document.getElementById('setting-end-time').value = s.END_TIME || s.endTime || '16:00';
+      const logoVal = s.SYSTEM_LOGO || s.systemLogo;
+      if (logoVal) {
+        const preview = document.getElementById('setting-system-logo-preview');
+        preview.src = logoVal;
+        preview.style.display = 'block';
       }
     } else {
       // Mock mode
@@ -6738,12 +6012,19 @@ function loadSettings() {
       APP_STATE.holidays = hols || [];
       renderLocationsTable(locs || []);
       renderHolidaysTable(hols || []);
-      if (settings) {
-        document.getElementById('setting-app-name').value = settings.appName || '';
-        document.getElementById('setting-work-hours').value = settings.workHours || 8;
-        document.getElementById('setting-late-tolerance').value = settings.lateTolerance || 15;
-        document.getElementById('setting-start-time').value = settings.startTime || '07:30';
-        document.getElementById('setting-end-time').value = settings.endTime || '16:00';
+      const s = settings || {};
+      document.getElementById('setting-app-name').value = s.APP_NAME || s.appName || '';
+      document.getElementById('setting-company-name').value = s.COMPANY_NAME || s.companyName || '';
+      document.getElementById('setting-company-address').value = s.COMPANY_ADDRESS || s.companyAddress || '';
+      document.getElementById('setting-work-hours').value = s.STANDARD_WORK_HOURS || s.workHours || 8;
+      document.getElementById('setting-late-tolerance').value = s.LATE_TOLERANCE || s.lateTolerance || 15;
+      document.getElementById('setting-start-time').value = s.START_TIME || s.startTime || '07:30';
+      document.getElementById('setting-end-time').value = s.END_TIME || s.endTime || '16:00';
+      const logoVal = s.SYSTEM_LOGO || s.systemLogo;
+      if (logoVal) {
+        const preview = document.getElementById('setting-system-logo-preview');
+        preview.src = logoVal;
+        preview.style.display = 'block';
       }
     }
   });
@@ -6771,7 +6052,7 @@ function renderMentorTable(data) {
   const tbody = document.getElementById('mentor-table-body');
   if (!tbody) return;
   if (!data || data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Belum ada User/Mentor terdaftar</div></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Belum ada User/Mentor terdaftar</div></div></td></tr>`;
     return;
   }
   tbody.innerHTML = data.map((m, i) => {
@@ -6795,7 +6076,6 @@ function renderMentorTable(data) {
       <td><code style="font-size:12px;background:var(--bg);padding:2px 7px;border-radius:5px;">${m.username}</code></td>
       <td style="font-size:12px;">${m.email || '<span style="color:var(--text-secondary)">-</span>'}</td>
       <td><span class="badge badge-secondary" style="font-size:11px;">${m.role}</span></td>
-      <td style="font-size:12px;font-weight:500;">${m.department || m.dept || '-'}</td>
       <td>${statusBadge}</td>
       <td>${assignedHtml}</td>
       <td>
@@ -6825,7 +6105,6 @@ function openMentorModal(id) {
   document.getElementById('mentor-username').value = '';
   document.getElementById('mentor-password').value = '';
   document.getElementById('mentor-email').value = '';
-  document.getElementById('mentor-dept').value = '';
   document.getElementById('mentor-role').value = 'User/Mentor PuD';
   document.getElementById('mentor-status').value = 'Active';
 
@@ -6838,7 +6117,6 @@ function openMentorModal(id) {
     document.getElementById('mentor-name').value = m.name;
     document.getElementById('mentor-username').value = m.username;
     document.getElementById('mentor-email').value = m.email || '';
-    document.getElementById('mentor-dept').value = m.department || m.dept || '';
     document.getElementById('mentor-role').value = m.role || 'User/Mentor PuD';
     document.getElementById('mentor-status').value = m.status || 'Active';
     document.getElementById('mentor-pass-hint').textContent = 'Kosongkan jika tidak ingin mengubah password';
@@ -6862,13 +6140,11 @@ function saveMentor() {
   const username = document.getElementById('mentor-username').value.trim();
   const password = document.getElementById('mentor-password').value.trim();
   const email = document.getElementById('mentor-email').value.trim();
-  const dept = document.getElementById('mentor-dept').value.trim();
   const role = document.getElementById('mentor-role').value;
   const status = document.getElementById('mentor-status').value;
 
   if (!name) { showToast('error', 'Validasi', 'Nama lengkap wajib diisi'); return; }
   if (!username) { showToast('error', 'Validasi', 'Username wajib diisi'); return; }
-  if (!dept) { showToast('error', 'Validasi', 'Departemen wajib diisi'); return; }
   if (!id && !password) { showToast('error', 'Validasi', 'Password wajib diisi untuk akun baru'); return; }
   if (password && password.length < 6) { showToast('error', 'Validasi', 'Password minimal 6 karakter'); return; }
 
@@ -6885,7 +6161,7 @@ function saveMentor() {
     role,
     status,
     // Required fields with defaults for non-employee
-    department: dept,
+    department: 'Pengguna Jasa',
     position: role,
     no_reg: '',
     supervisor_id: '',
@@ -7099,16 +6375,33 @@ function deleteHoliday(holId) {
   });
 }
 
+function previewSystemLogo(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const preview = document.getElementById('setting-system-logo-preview');
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+    }
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
 function saveSettings() {
   const data = {
-    appName: document.getElementById('setting-app-name').value.trim(),
-    companyName: document.getElementById('setting-company-name').value.trim(),
-    companyAddress: document.getElementById('setting-company-address').value.trim(),
-    workHours: parseInt(document.getElementById('setting-work-hours').value),
-    lateTolerance: parseInt(document.getElementById('setting-late-tolerance').value),
-    startTime: document.getElementById('setting-start-time').value,
-    endTime: document.getElementById('setting-end-time').value,
+    APP_NAME: document.getElementById('setting-app-name').value.trim(),
+    COMPANY_NAME: document.getElementById('setting-company-name').value.trim(),
+    COMPANY_ADDRESS: document.getElementById('setting-company-address').value.trim(),
+    STANDARD_WORK_HOURS: parseInt(document.getElementById('setting-work-hours').value),
+    LATE_TOLERANCE: parseInt(document.getElementById('setting-late-tolerance').value),
+    START_TIME: document.getElementById('setting-start-time').value,
+    END_TIME: document.getElementById('setting-end-time').value,
   };
+  
+  const logoPreview = document.getElementById('setting-system-logo-preview');
+  if (logoPreview.src && logoPreview.src.startsWith('data:image')) {
+    data.SYSTEM_LOGO = logoPreview.src;
+  }
 
   showLoading('Menyimpan pengaturan...');
   gasRun('saveSettings', [data],
@@ -7169,21 +6462,17 @@ function loadAttendanceForDate() {
     function(att) {
       hideLoading();
       const dataDiv = document.getElementById('edit-existing-data');
+      dataDiv.classList.remove('hidden');
       if (att) {
-        dataDiv.classList.remove('hidden');
-        dataDiv.dataset.attId = att.id || '';
         document.getElementById('edit-existing-in').textContent = att.clockIn || '--:--';
         document.getElementById('edit-existing-out').textContent = att.clockOut || '--:--';
         document.getElementById('edit-new-in').value = att.clockIn || '';
         document.getElementById('edit-new-out').value = att.clockOut || '';
       } else {
-        dataDiv.classList.add('hidden');
-        dataDiv.dataset.attId = '';
         document.getElementById('edit-existing-in').textContent = '--:--';
         document.getElementById('edit-existing-out').textContent = '--:--';
         document.getElementById('edit-new-in').value = '';
         document.getElementById('edit-new-out').value = '';
-        showToast('error', 'Validasi', 'Tidak ada data absen pada tanggal tersebut. Koreksi wajib untuk absensi yang sudah ada.');
       }
     },
     () => hideLoading()
@@ -7214,18 +6503,12 @@ function submitEditAttendance() {
   const existOut = document.getElementById('edit-existing-out').textContent;
   const originalIn = existIn !== '--:--' ? existIn : '';
   const originalOut = existOut !== '--:--' ? existOut : '';
-  const attId = document.getElementById('edit-existing-data').dataset.attId || '';
-
-  if (!attId) {
-    showToast('error', 'Validasi', 'Koreksi hanya bisa dilakukan untuk data absen yang sudah ada.');
-    return;
-  }
 
   const btn = document.getElementById('edit-submit-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="btn-spinner"></span> Mengirim...';
 
-  gasRun('submitEditRequest', [user.id, attId, date, originalIn, originalOut, newIn, newOut, reason],
+  gasRun('submitEditRequest', [user.id, date, originalIn, originalOut, newIn, newOut, reason],
     function(res) {
       btn.disabled = false;
       btn.innerHTML = '📤 Ajukan Koreksi';
@@ -7586,7 +6869,6 @@ function downloadMentorTemplate() {
   const headers = [
     "Nama Lengkap",
     "Role (User/Mentor atau Admin)",
-    "Departemen",
     "Username / ID Login",
     "Password",
     "Email",
@@ -7595,8 +6877,8 @@ function downloadMentorTemplate() {
 
   const data = [
     headers,
-    ["(HAPUS BARIS INI) Agus Sutrisno", "User/Mentor", "Pengguna Jasa", "agus", "pass123", "agus@gmail.com", "Aktif"],
-    ["(HAPUS BARIS INI) Admin Pro", "Admin", "Administrator", "admin", "pass123", "admin@domain.com", "Aktif"],
+    ["(HAPUS BARIS INI) Agus Sutrisno", "User/Mentor", "agus", "pass123", "agus@gmail.com", "Aktif"],
+    ["(HAPUS BARIS INI) Admin Pro", "Admin", "admin", "pass123", "admin@domain.com", "Aktif"],
   ];
 
   const ws = XLSX.utils.aoa_to_sheet(data);
@@ -7748,9 +7030,7 @@ function processExcelUpload(event, defaultRole) {
            let h = headers[j] || '';
            let val = row[j] != null ? String(row[j]).trim() : '';
            
-           if((h.includes('nik atasan') || h.includes('id atasan') || h.includes('username atasan')) && !h.includes('2') && !h.includes('3')) emp.supervisor_nik = val;
-           else if(h.includes('atasan 2') || h.includes('approver 2') || h.includes('nik atasan 2') || h.includes('id atasan 2')) emp.approver_2_nik = val;
-           else if(h.includes('atasan 3') || h.includes('approver 3') || h.includes('nik atasan 3') || h.includes('id atasan 3')) emp.approver_3_nik = val;
+           if(h.includes('nik atasan') || h.includes('id atasan') || h.includes('username atasan')) emp.supervisor_nik = val;
            else if(h.includes('username')) emp.username = val;
            else if(h.includes('password')) emp.password = val;
            else if(h.includes('nama')) emp.name = val;
@@ -8139,8 +7419,9 @@ function bulkReject(type, tbodyId) {
     const savedUser = localStorage.getItem('absensi_user');
     if (savedUser) {
       APP_STATE.user = JSON.parse(savedUser);
+      initApp(APP_STATE.user);
       const savedView = localStorage.getItem('absensi_current_view');
-      initApp(APP_STATE.user, savedView);
+      if (savedView) navigateTo(savedView);
       return;
     }
   } catch (e) {
